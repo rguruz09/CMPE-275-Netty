@@ -170,8 +170,8 @@ public class MessageServer {
 				logger.error("Failed to setup handler.", ex);
 			} finally {
 				// Shut down all event loops to terminate all threads.
-				bossGroup.shutdownGracefully();
-				workerGroup.shutdownGracefully();
+//				bossGroup.shutdownGracefully();
+//				workerGroup.shutdownGracefully();
 			}
 		}
 	}
@@ -209,7 +209,6 @@ public class MessageServer {
 			try {
 				ServerBootstrap b = new ServerBootstrap();
 				bootstrap.put(state.getConf().getWorkPort(), b);
-
 				b.group(bossGroup, workerGroup);
 				b.channel(NioServerSocketChannel.class);
 				b.option(ChannelOption.SO_BACKLOG, 100);
@@ -236,13 +235,13 @@ public class MessageServer {
 				logger.error("Failed to setup handler.", ex);
 			} finally {
 				// Shut down all event loops to terminate all threads.
-				bossGroup.shutdownGracefully();
-				workerGroup.shutdownGracefully();
-
-				// shutdown monitor
-				EdgeMonitor emon = state.getEmon();
-				if (emon != null)
-					emon.shutdown();
+//				bossGroup.shutdownGracefully();
+//				workerGroup.shutdownGracefully();
+//
+//				// shutdown monitor
+//				EdgeMonitor emon = state.getEmon();
+//				if (emon != null)
+//					emon.shutdown();
 			}
 		}
 	}

@@ -27,6 +27,10 @@ public class WorkInit extends ChannelInitializer<SocketChannel> {
 		this.state = state;
 	}
 
+	public WorkInit(){
+		super();
+	}
+
 	@Override
 	public void initChannel(SocketChannel ch) throws Exception {
 		ChannelPipeline pipeline = ch.pipeline();
@@ -36,7 +40,7 @@ public class WorkInit extends ChannelInitializer<SocketChannel> {
 			pipeline.addLast("deflater", ZlibCodecFactory.newZlibEncoder(ZlibWrapper.GZIP));
 			pipeline.addLast("inflater", ZlibCodecFactory.newZlibDecoder(ZlibWrapper.GZIP));
 		}
-
+		//test comment
 		/**
 		 * length (4 bytes).
 		 * 

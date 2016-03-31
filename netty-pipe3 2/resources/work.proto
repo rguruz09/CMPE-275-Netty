@@ -10,8 +10,20 @@ message WorkState {
    required int32 processed = 2;
 }
 
+message HeartBeatMsgType {
+   required HbType type = 1;
+}
+
+enum HbType {
+   LEADERREQ = 1;
+   LEADERRES = 2;
+   NEIGHBORREQ = 3;
+   NEIGHBORRES = 4;
+}
+
 message Heartbeat {
    required WorkState state = 1;
+   optional HeartBeatMsgType msgType  = 2;
 }
 
 /**

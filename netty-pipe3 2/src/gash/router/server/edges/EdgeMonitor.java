@@ -15,12 +15,18 @@
  */
 package gash.router.server.edges;
 
+import gash.router.server.WorkInit;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import gash.router.container.RoutingConf.RoutingEntry;
 import gash.router.server.ServerState;
 import pipe.common.Common.Header;
+import pipe.work.Work;
 import pipe.work.Work.Heartbeat;
 import pipe.work.Work.WorkMessage;
 import pipe.work.Work.WorkState;
@@ -33,6 +39,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 	private long dt = 2000;
 	private ServerState state;
 	private boolean forever = true;
+	public static Channel channel;
 
 	public EdgeMonitor(ServerState state) {
 		if (state == null)
@@ -54,6 +61,18 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 			this.dt = state.getConf().getHeartbeatDt();
 	}
 
+	public static Channel getChannel() {
+		return channel;
+	}
+
+	public EdgeList getOutboundEdges(){
+		return this.outboundEdges;
+	}
+
+	public EdgeList getInboundEdges(){
+		return this.inboundEdges;
+	}
+
 	public void createInboundIfNew(int ref, String host, int port) {
 		inboundEdges.createIfNew(ref, host, port);
 	}
@@ -63,17 +82,50 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 		sb.setEnqueued(-1);
 		sb.setProcessed(-1);
 
+		Work.HeartBeatMsgType.Builder heartBeatMsgType = Work.HeartBeatMsgType.newBuilder();
+		heartBeatMsgType.setType(Work.HbType.NEIGHBORREQ);
+
 		Heartbeat.Builder bb = Heartbeat.newBuilder();
 		bb.setState(sb);
+		bb.setMsgType(heartBeatMsgType);
 
 		Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(state.getConf().getNodeId());
 		hb.setDestination(-1);
 		hb.setTime(System.currentTimeMillis());
+		hb.setMaxHops(4);
 
 		WorkMessage.Builder wb = WorkMessage.newBuilder();
 		wb.setHeader(hb);
 		wb.setBeat(bb);
+		wb.setSecret(123);
+
+		return wb.build();
+	}
+
+	private WorkMessage createHB(int dest) {
+		WorkState.Builder sb = WorkState.newBuilder();
+		sb.setEnqueued(-1);
+		sb.setProcessed(-1);
+
+		Work.HeartBeatMsgType.Builder heartBeatMsgType = Work.HeartBeatMsgType.newBuilder();
+		heartBeatMsgType.setType(Work.HbType.NEIGHBORREQ);
+
+		Heartbeat.Builder bb = Heartbeat.newBuilder();
+		bb.setState(sb);
+		bb.setMsgType(heartBeatMsgType);
+
+
+		Header.Builder hb = Header.newBuilder();
+		hb.setNodeId(state.getConf().getNodeId());
+		hb.setDestination(dest);
+		hb.setTime(System.currentTimeMillis());
+		hb.setMaxHops(4);
+
+		WorkMessage.Builder wb = WorkMessage.newBuilder();
+		wb.setHeader(hb);
+		wb.setBeat(bb);
+		wb.setSecret(123);
 
 		return wb.build();
 	}
@@ -92,9 +144,31 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 						ei.getChannel().writeAndFlush(wm);
 					} else {
 						// TODO create a client to the node
-						logger.info("trying to connect to node " + ei.getRef());
+						logger.info("Inside else block.....for node " + ei.getRef());
+						logger.info("trying to connect to node " + ei.getPort()+" "+  ei.getHost());
+
+						if(true){
+							Bootstrap b = new Bootstrap();
+							b.group(new NioEventLoopGroup());
+							b.channel(NioSocketChannel.class);
+							b.handler(new WorkInit(state,false));
+							channel = b.connect(ei.getHost(), ei.getPort()).sync().channel();
+							ei.setChannel(channel);
+							ei.setActive(true);
+							logger.info("connected to node " + ei.getRef());
+							// TODO create a client to the node
+							logger.info("trying to connect to node " + ei.getRef());
+						}
 					}
 				}
+
+				//Construct the msg for third node
+//				for (EdgeInfo ei : this.outboundEdges.map.values()) {
+//					if (ei.isActive() && ei.getChannel() != null) {
+//						WorkMessage wm = createHB(33);
+//						ei.getChannel().writeAndFlush(wm);
+//					}
+//				}
 
 				Thread.sleep(dt);
 			} catch (InterruptedException e) {

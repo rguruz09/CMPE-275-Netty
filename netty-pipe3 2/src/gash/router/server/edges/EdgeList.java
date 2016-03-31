@@ -30,6 +30,10 @@ public class EdgeList {
 			return addNode(ref, host, port);
 	}
 
+	public HashMap<Integer, EdgeInfo> getAllModes(){
+		return map;
+	}
+
 	public EdgeInfo addNode(int ref, String host, int port) {
 		if (!verify(ref, host, port)) {
 			// TODO log error
