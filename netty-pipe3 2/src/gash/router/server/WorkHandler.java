@@ -83,6 +83,9 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 				stateCommand.handleMessage(msg,channel);
 			} else if(msg.hasLeader()){
 				System.out.println("Leader Query Request");
+				LeaderMsg leaderMsg = new LeaderMsg(state);
+				LeaderCommand leaderCommand = new LeaderCommand(leaderMsg);
+				leaderCommand.handleMessage(msg, channel);
 			}
 			else {
 				System.out.println("Else part");
