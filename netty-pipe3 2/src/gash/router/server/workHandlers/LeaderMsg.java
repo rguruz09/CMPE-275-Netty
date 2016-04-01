@@ -24,22 +24,25 @@ public class LeaderMsg {
 
     public void handleLeaderMsg(Work.WorkMessage msg, Channel channel) {
         logger.info("Leadermsg from " + msg.getHeader().getNodeId());
-        System.out.println("LeaderMsg");
+        System.out.println("In HandleLeaderMsg");
 
         if(false){
             // if im the sender, dont care
         }else{
             if (msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.WHOISTHELEADER) {
+                System.out.println("Received leader request: Sending ");
                 Work.WorkMessage wm = createLeaderRespMsg(msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
 
             } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
-
+                    System.out.println("Received leader response");
                 if(msg.getLeader().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()){
                     if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
                             msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
+                        System.out.println("Response: Leader Unknown");
                         state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
                     }else {
+                        System.out.println("Response: Leader details");
                         state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
                         state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
                         state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
