@@ -19,7 +19,7 @@ public class ElectionStatus {
     public ElectionStatus() {
         Term = 0;
         VoteCt = 0;
-        Quorum = 3;
+        Quorum = 1;
         status = NODE_STATUS.FOLLOWER;
         voters =  new HashMap<Integer, Boolean>();
     }

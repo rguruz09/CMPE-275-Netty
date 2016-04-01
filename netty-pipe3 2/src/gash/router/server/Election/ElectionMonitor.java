@@ -67,11 +67,11 @@ public class ElectionMonitor implements Runnable{
         try {
             System.out.println("Election monitor. going to sleep");
             Thread.sleep(10000);
-
+            //Thread.sleep(state.getConf().getHeartbeatDt());
             while (true){
                 System.out.println(" Check the last HB timer.. ");
 
-                if(electionStatus.getStatus() == ElectionStatus.NODE_STATUS.FOLLOWER &&  (System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
+                if(electionStatus.getStatus() != ElectionStatus.NODE_STATUS.LEADER &&  (System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
                     System.out.println("No HB from leader.. ill be the candidate");
 
                     Work.WorkMessage wb;
@@ -152,7 +152,7 @@ public class ElectionMonitor implements Runnable{
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);
         wb.setSecret(123);
-
+        wb.setVote(vm);
         return wb.build();
     }
 }

@@ -35,7 +35,7 @@ public class LeaderMsg {
 
             } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
 
-                if(msg.getLeader().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()){
+                if(msg.getLeader().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()){
                     if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
                             msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
                         state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
