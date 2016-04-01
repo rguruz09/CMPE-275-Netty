@@ -63,10 +63,9 @@ message WorkMessage {
 message VoteMsg {
    required WorkState state = 1;
    required VoteMsgType vtype = 2;
-
+   required int32 term = 3;
    enum VoteMsgType {
       VOTEREQ = 1;
       VOTERES = 2;
    }
-
 }

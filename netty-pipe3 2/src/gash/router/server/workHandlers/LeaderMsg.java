@@ -2,6 +2,7 @@ package gash.router.server.workHandlers;
 
 import gash.router.server.Election.LeaderStatus;
 import gash.router.server.ServerState;
+import gash.router.server.edges.EdgeInfo;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,7 @@ import pipe.work.Work;
  */
 public class LeaderMsg {
     protected static Logger logger = LoggerFactory.getLogger("LeaderMsg");
-    private ServerState state;
+    private static ServerState state;
 
     public LeaderMsg(ServerState state) {
         this.state = state;
@@ -25,15 +26,46 @@ public class LeaderMsg {
         logger.info("Leadermsg from " + msg.getHeader().getNodeId());
         System.out.println("LeaderMsg");
 
-        if (msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.WHOISTHELEADER) {
-            Work.WorkMessage wm = createLeaderRespMsg(msg.getHeader().getNodeId());
-            channel.writeAndFlush(wm);
+        if(false){
+            // if im the sender, dont care
+        }else{
+            if (msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.WHOISTHELEADER) {
+                Work.WorkMessage wm = createLeaderRespMsg(msg.getHeader().getNodeId());
+                channel.writeAndFlush(wm);
 
+            } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
+
+                if(msg.getLeader().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()){
+                    if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
+                            msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
+                        state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                    }else {
+                        state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
+                        state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
+                        state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
+                        state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
+                    }
+                    // if its a broadcast msg fwd it to all
+                    if(msg.getHeader().getDestination() == -1){
+                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+                            if (ei.isActive() && ei.getChannel() != null) {
+                                ei.getChannel().writeAndFlush(msg);
+                            }
+                        }
+                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+                            if (ei.isActive() && ei.getChannel() != null) {
+                                ei.getChannel().writeAndFlush(msg);
+                            }
+                        }
+                    }
+                } else {
+                    System.out.println("Old leader");
+                }
+            }
         }
-
     }
 
-    public Work.WorkMessage createLeaderRespMsg(int dest) {
+    public static Work.WorkMessage createLeaderRespMsg(int dest) {
 
         Election.LeaderStatus.Builder ls = Election.LeaderStatus.newBuilder();
         ls.setAction(Election.LeaderStatus.LeaderQuery.THELEADERIS);
@@ -47,7 +79,7 @@ public class LeaderMsg {
         ls.setLeaderHost(state.getElectionMonitor().getLeaderStatus().getLeaderHost());
         ls.setLeaderId(state.getElectionMonitor().getLeaderStatus().getCurLeader());
         ls.setState(state.getElectionMonitor().getLeaderStatus().getLeader_state());
-
+        ls.setTerm(state.getElectionMonitor().getElectionStatus().getTerm());
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);
@@ -57,4 +89,6 @@ public class LeaderMsg {
 
         return wb.build();
     }
+
+
 }

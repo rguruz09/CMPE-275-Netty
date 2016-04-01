@@ -89,7 +89,6 @@ public class ElectionMonitor implements Runnable{
                         leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
 
                         wb = createVoteReqMsg();
-
                     }
 
                     for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
@@ -142,6 +141,7 @@ public class ElectionMonitor implements Runnable{
         Work.VoteMsg.Builder vm = Work.VoteMsg.newBuilder();
         vm.setState(sb);
         vm.setVtype(Work.VoteMsg.VoteMsgType.VOTEREQ);
+        vm.setTerm(electionStatus.getTerm());
 
         Common.Header.Builder hb = Common.Header.newBuilder();
         hb.setNodeId(state.getConf().getNodeId());
