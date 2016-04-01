@@ -22,46 +22,58 @@ import pipe.work.Work;
         this.state = state;
     }
 
-    public void handleVoteMsg(Work.WorkMessage msg, Channel channel){
+    public void handleVoteMsg(Work.WorkMessage msg, Channel channel) {
 
         logger.info("Vote msg from " + msg.getHeader().getNodeId());
-        if(msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
-                msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm() ) {
+        if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
+                msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()) {
 
             forwardToAll(msg);
             Work.WorkMessage wm = createVoteRespMsg(msg);
             channel.writeAndFlush(wm);
-        }
-
-        else if(msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES){
+        } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
 
             // 1. CHeck if the response for me
-            if(msg.getHeader().getNodeId() == state.getConf().getNodeId()) {
+            if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
+
                 // If Im the candidate process the response else not
-                if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE){
-                    state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt()+1);
-                    // Check if i got majority
-                    if(state.getElectionMonitor().getElectionStatus().getVoteCt() >= state.getElectionMonitor().getElectionStatus().getQuorum()){
-                        System.out.println("Majority votes received: I will be the new leader: Node "+ msg.getHeader().getNodeId());
-                        Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1);
-                        forwardToAll(wm);
+
+                //Check for redundent votes
+                if (! state.getElectionMonitor().getElectionStatus().getVoters().containsKey(msg.getHeader().getNodeId())) {
+                    if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
+                        state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
+                        // Check if i got majority
+                        if (state.getElectionMonitor().getElectionStatus().getVoteCt() >= state.getElectionMonitor().getElectionStatus().getQuorum()) {
+                            System.out.println("Majority votes received: I will be the new leader: Node " + msg.getHeader().getNodeId());
+
+                            state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.LEADER);
+                            state.getElectionMonitor().getLeaderStatus().setLeaderHost(state.getConf().getSelfHost());
+                            state.getElectionMonitor().getLeaderStatus().setCurLeader(state.getConf().getNodeId());
+                            state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
+
+                            Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1);
+                            forwardToAll(wm);
+                        }
                     }
+                } else {
+                    System.out.println("Duplicate votes");
                 }
-            }else {
+            } else {
                 // 2. If not for me send it to appropriate node.
-                if(state.getEmon().getInboundEdges().hasNode(msg.getHeader().getNodeId())){
+                if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getNodeId())) {
                     Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel();
                     c.writeAndFlush(msg);
-                }else if(state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getNodeId())){
+                } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getNodeId())) {
                     Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getNodeId()).getChannel();
                     c.writeAndFlush(msg);
-                }else {
+                } else {
                     forwardToAll(msg);
                 }
             }
         }
 
     }
+
 
     public void forwardToAll(Work.WorkMessage msg){
         for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
