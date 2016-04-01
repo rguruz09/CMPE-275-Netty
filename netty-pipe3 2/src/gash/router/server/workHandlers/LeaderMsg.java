@@ -35,35 +35,38 @@ public class LeaderMsg {
                 channel.writeAndFlush(wm);
 
             } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
-                    System.out.println("Received leader response");
-                if(msg.getLeader().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()){
-                    if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
-                            msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
-                        System.out.println("Response: Leader Unknown");
-                        state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
-                    }else {
-                        System.out.println("Response: Leader details");
-                        state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
-                        state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
-                        state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
-                        state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
-                    }
-                    // if its a broadcast msg fwd it to all
-                    if(msg.getHeader().getDestination() == -1){
-                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-                            if (ei.isActive() && ei.getChannel() != null) {
-                                ei.getChannel().writeAndFlush(msg);
-                            }
-                        }
-                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-                            if (ei.isActive() && ei.getChannel() != null) {
-                                ei.getChannel().writeAndFlush(msg);
-                            }
-                        }
-                    }
-                } else {
-                    System.out.println("Old leader");
+                System.out.println("Received leader response");
+
+                if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
+                        msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
+                    System.out.println("Response: Leader Unknown");
+                    state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                }else {
+                    System.out.println("Response: Leader details");
+                    state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
+                    state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
+                    state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
+                    state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
                 }
+                // if its a broadcast msg fwd it to all
+                if(msg.getHeader().getDestination() == -1){
+                    for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+                        if (ei.isActive() && ei.getChannel() != null) {
+                            ei.getChannel().writeAndFlush(msg);
+                        }
+                    }
+                    for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+                        if (ei.isActive() && ei.getChannel() != null) {
+                            ei.getChannel().writeAndFlush(msg);
+                        }
+                    }
+                }
+
+//                if(msg.getLeader().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()){
+//
+//                } else {
+//                    System.out.println("Old leader");
+//                }
             }
         }
     }

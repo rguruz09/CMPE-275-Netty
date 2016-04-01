@@ -78,16 +78,13 @@ public class ElectionMonitor implements Runnable{
 
                     if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
                         //     Query for  Leader
-
                         wb =  createLeaderQueryMsg();
-
                     } else {
-                              // Election process
+                        // Election process
                         electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
                         electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
                         electionStatus.setTerm(electionStatus.getTerm()+1);
                         leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
-
                         wb = createVoteReqMsg();
                     }
 
@@ -96,6 +93,7 @@ public class ElectionMonitor implements Runnable{
                             ei.getChannel().writeAndFlush(wb);
                         }
                     }
+
                     for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
                         if(ei.isActive() && ei.getChannel() != null){
                             ei.getChannel().writeAndFlush(wb);
