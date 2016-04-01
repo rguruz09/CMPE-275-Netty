@@ -32,9 +32,13 @@ public class HeartBeatMsg {
             // Respond back
             Work.WorkMessage rB = returnHB(msg.getHeader().getNodeId());
             channel.writeAndFlush(rB);
+            //Vinay: ToDo host address and port no
             state.getEmon().createInboundIfNew(msg.getHeader().getNodeId(), channel.remoteAddress().toString(), 1200);
-            if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel() == null)
+            if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel() == null){
+                System.out.println("Saving the channel info");
                 state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).setChannel(channel);
+            }
+
         }
 
 //        if(msg.getHeader().getDestination() != state.getConf().getNodeId()){
@@ -54,7 +58,7 @@ public class HeartBeatMsg {
 //                    Work.WorkMessage rB = returnHB(msg.getHeader().getNodeId());
 //                    channel.writeAndFlush(rB);
 //                }
-//                for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllModes().values()) {
+//                for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
 //                    if (ei.isActive() && ei.getChannel() != null) {
 //                        ei.getChannel().writeAndFlush(msg);
 //                    }

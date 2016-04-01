@@ -63,7 +63,6 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 			System.out.println("Try: Handling the client message");
 			if (msg.hasBeat()) {
 				HeartBeatMsg heartBeatMsg = new HeartBeatMsg(state);
-
 				HeartBeatCommand heartBeatCommand = new HeartBeatCommand(heartBeatMsg);
 				heartBeatCommand.handleMessage(msg,channel);
 			} else if (msg.hasPing()) {
@@ -82,6 +81,8 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 				StateMsg stateMsg = new StateMsg(state);
 				StateCommand stateCommand = new StateCommand(stateMsg);
 				stateCommand.handleMessage(msg,channel);
+			} else if(msg.hasLeader()){
+				System.out.println("Leader Query Request");
 			}
 			else {
 				System.out.println("Else part");

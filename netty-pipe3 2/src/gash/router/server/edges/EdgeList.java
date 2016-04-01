@@ -30,7 +30,7 @@ public class EdgeList {
 			return addNode(ref, host, port);
 	}
 
-	public HashMap<Integer, EdgeInfo> getAllModes(){
+	public HashMap<Integer, EdgeInfo> getAllNodes(){
 		return map;
 	}
 

@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import gash.router.server.Election.ElectionMonitor;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,9 @@ public class MessageServer {
 		// We always start the worker in the background
 		Thread cthread = new Thread(comm);
 		cthread.start();
+
+		//Thread for election
+
 
 		if (!conf.isInternalNode()) {
 			StartCommandCommunication comm2 = new StartCommandCommunication(conf);
@@ -198,6 +202,7 @@ public class MessageServer {
 			EdgeMonitor emon = new EdgeMonitor(state);
 			Thread t = new Thread(emon);
 			t.start();
+
 		}
 
 		public void run() {
@@ -227,8 +232,17 @@ public class MessageServer {
 				logger.info(f.channel().localAddress() + " -> open: " + f.channel().isOpen() + ", write: "
 						+ f.channel().isWritable() + ", act: " + f.channel().isActive());
 
+				ElectionMonitor electionMonitor = new ElectionMonitor(state);
+				state.setElectionMonitor(electionMonitor);
+				Thread electionT = new Thread(electionMonitor);
+				electionT.run();
+
+
 				// block until the server socket is closed.
 				f.channel().closeFuture().sync();
+
+
+
 
 			} catch (Exception ex) {
 				// on bind().sync()
