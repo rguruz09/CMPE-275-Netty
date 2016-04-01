@@ -108,6 +108,7 @@ import pipe.work.Work;
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);
+        wb.setVote(vm);
         wb.setSecret(123);
 
         return wb.build();
