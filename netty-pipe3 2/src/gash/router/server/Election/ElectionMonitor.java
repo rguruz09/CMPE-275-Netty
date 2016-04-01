@@ -76,7 +76,7 @@ public class ElectionMonitor implements Runnable{
 
                     Work.WorkMessage wb;
 
-                    if(leaderStatus.getLeader_state() == LeaderStatus.LEADER_STATE.LEADERUNKNOWN){
+                    if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
                         //     Query for  Leader
 
                         wb =  createLeaderQueryMsg();
@@ -86,7 +86,7 @@ public class ElectionMonitor implements Runnable{
                         electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
                         electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
                         electionStatus.setTerm(electionStatus.getTerm()+1);
-                        leaderStatus.setLeader_state(LeaderStatus.LEADER_STATE.LEADERDEAD);
+                        leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
 
                         wb = createVoteReqMsg();
 
