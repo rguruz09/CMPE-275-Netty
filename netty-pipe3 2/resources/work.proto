@@ -56,5 +56,17 @@ message WorkMessage {
       Task task = 6;
       WorkState state = 7;
       LeaderStatus leader = 8;
+      VoteMsg vote = 9;
    }
+}
+
+message VoteMsg {
+   required WorkState state = 1;
+   required VoteMsgType vtype = 2;
+
+   enum VoteMsgType {
+      VOTEREQ = 1;
+      VOTERES = 2;
+   }
+
 }

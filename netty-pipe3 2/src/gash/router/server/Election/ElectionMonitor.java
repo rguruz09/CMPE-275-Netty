@@ -74,36 +74,34 @@ public class ElectionMonitor implements Runnable{
                 if(electionStatus.getStatus() == ElectionStatus.NODE_STATUS.FOLLOWER &&  (System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
                     System.out.println("No HB from leader.. ill be the candidate");
 
-
+                    Work.WorkMessage wb;
 
                     if(leaderStatus.getLeader_state() == LeaderStatus.LEADER_STATE.LEADERUNKNOWN){
                         //     Query for  Leader
 
-                        Work.WorkMessage wb =  createLeaderQueryMsg();
-
-                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
-                            if(ei.isActive() && ei.getChannel() != null){
-                                ei.getChannel().writeAndFlush(wb);
-                            }
-                        }
-                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
-                            if(ei.isActive() && ei.getChannel() != null){
-                                ei.getChannel().writeAndFlush(wb);
-                            }
-                        }
-
+                        wb =  createLeaderQueryMsg();
 
                     } else {
                               // Election process
+                        electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
+                        electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
+                        electionStatus.setTerm(electionStatus.getTerm()+1);
+                        leaderStatus.setLeader_state(LeaderStatus.LEADER_STATE.LEADERDEAD);
+
+                        wb = createVoteReqMsg();
+
                     }
 
-
-                    electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
-                    electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
-                    electionStatus.setTerm(electionStatus.getTerm()+1);
-
-                    leaderStatus.setLeader_state(LeaderStatus.LEADER_STATE.LEADERDEAD);
-
+                    for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
+                        if(ei.isActive() && ei.getChannel() != null){
+                            ei.getChannel().writeAndFlush(wb);
+                        }
+                    }
+                    for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
+                        if(ei.isActive() && ei.getChannel() != null){
+                            ei.getChannel().writeAndFlush(wb);
+                        }
+                    }
                 }
                 Thread.sleep(state.getConf().getHeartbeatDt());
             }
@@ -132,6 +130,29 @@ public class ElectionMonitor implements Runnable{
         wb.setSecret(123);
 
         return wb.build();
+    }
 
+
+    public Work.WorkMessage createVoteReqMsg(){
+
+        Work.WorkState.Builder sb = Work.WorkState.newBuilder();
+        sb.setEnqueued(-1);
+        sb.setProcessed(-1);
+
+        Work.VoteMsg.Builder vm = Work.VoteMsg.newBuilder();
+        vm.setState(sb);
+        vm.setVtype(Work.VoteMsg.VoteMsgType.VOTEREQ);
+
+        Common.Header.Builder hb = Common.Header.newBuilder();
+        hb.setNodeId(state.getConf().getNodeId());
+        hb.setDestination(-1);
+        hb.setTime(System.currentTimeMillis());
+        hb.setMaxHops(4);
+
+        Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
+        wb.setHeader(hb);
+        wb.setSecret(123);
+
+        return wb.build();
     }
 }

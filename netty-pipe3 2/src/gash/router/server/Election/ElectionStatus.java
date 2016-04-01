@@ -1,7 +1,11 @@
 package gash.router.server.Election;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
+
+import java.util.HashMap;
+
 /**
- * Created by Student on 3/31/16.
+ * Created by Raghu on 3/31/16.
  */
 public class ElectionStatus {
 
@@ -10,12 +14,14 @@ public class ElectionStatus {
     private int VoteCt;
     private int Quorum;
     private NODE_STATUS status;
+    private HashMap<Integer, Boolean> voters;
 
     public ElectionStatus() {
         Term = 0;
         VoteCt = 0;
         Quorum = 3;
         status = NODE_STATUS.FOLLOWER;
+        voters =  new HashMap<Integer, Boolean>();
     }
 
     public int getTerm() {
@@ -54,5 +60,19 @@ public class ElectionStatus {
         FOLLOWER, CANDIDATE, LEADER
     }
 
+    public HashMap<Integer, Boolean> getVoters() {
+        return voters;
+    }
 
+    public void setVoters(HashMap<Integer, Boolean> voters) {
+        this.voters = voters;
+    }
+
+    public void addVoter(int nodeId){
+        voters.put(nodeId, true);
+    }
+
+    public void removeVoters(int nodeId){
+        voters.remove(nodeId);
+    }
 }
