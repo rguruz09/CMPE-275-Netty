@@ -46,6 +46,7 @@ public class HeartBeatMsg {
                 if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel() == null){
                     System.out.println("Saving the channel info");
                     state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).setChannel(channel);
+                    state.getEmon().getInboundEdges().getNode((msg.getHeader().getNodeId())).setActive(true);
                 }
             }
             //If it's a LEADER msg
