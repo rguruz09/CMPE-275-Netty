@@ -42,6 +42,9 @@ public class LeaderMsg {
                         msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
                     System.out.println("Response: Leader Unknown");
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                    state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
+                    state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
+                    state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
                 }else {
                     System.out.println("Response: New Leader is found!!");
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);

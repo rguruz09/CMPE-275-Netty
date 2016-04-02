@@ -83,6 +83,9 @@ public class ElectionMonitor implements Runnable{
             System.out.println("Election monitor. going to sleep");
             Thread.sleep(10000);
             //Thread.sleep(state.getConf().getHeartbeatDt());
+
+
+
             while (true){
 
                 //if leader, send the HB to its nodes
