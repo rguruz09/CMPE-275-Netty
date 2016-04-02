@@ -137,14 +137,14 @@ public class CommonUtils {
 //
 //    }
 
-    public static void forwardToAll(Work.WorkMessage msg, ServerState state){
+    public static void forwardToAll(Work.WorkMessage msg, ServerState state, boolean all){
         for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-            if (ei.isActive() && ei.getChannel() != null && state.getConf().getNodeId() != msg.getHeader().getNodeId() ) {
+            if (ei.isActive() && ei.getChannel() != null && all ) {
                 ei.getChannel().writeAndFlush(msg);
             }
         }
         for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-            if (ei.isActive() && ei.getChannel() != null && state.getConf().getNodeId() != msg.getHeader().getNodeId()) {
+            if (ei.isActive() && ei.getChannel() != null && all) {
                 ei.getChannel().writeAndFlush(msg);
             }
         }

@@ -57,7 +57,7 @@ public class HeartBeatMsg {
                 System.out.println("LEADERREQ received");
                 Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.LEADERRES, msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
-                forwardToAll(msg,state);
+                forwardToAll(msg,state,false);
             }else {
                 System.out.println("LEADERRES received");
                 if(msg.getHeader().getNodeId() == state.getConf().getNodeId()) {
@@ -68,7 +68,7 @@ public class HeartBeatMsg {
                     state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setActive(true);
 
                 }else {
-                    forwardToAll(msg, state);
+                    forwardToAll(msg, state,false);
                 }
             }
             //If it's a DISCOVER msg
@@ -79,7 +79,7 @@ public class HeartBeatMsg {
                 System.out.println("DISCOVERREQ received");
                 Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.DISCOVERRES, msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
-                forwardToAll(msg,state);
+                forwardToAll(msg,state,false);
             }else {
                 System.out.println("DISCOVERRES received");
                 if(msg.getHeader().getNodeId() == state.getConf().getNodeId()){
@@ -87,7 +87,7 @@ public class HeartBeatMsg {
                         addFollower(state,msg.getHeader().getNodeId());
                     }
                 }else {
-                    forwardToAll(msg,state);
+                    forwardToAll(msg,state,false);
                 }
             }
         }

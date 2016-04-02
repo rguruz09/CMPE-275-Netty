@@ -90,7 +90,7 @@ public class ElectionMonitor implements Runnable{
 
                     updatefollowers();
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
-                    forwardToAll(wm,state);
+                    forwardToAll(wm,state,false);
                 }else {
                     System.out.println(" Check the last HB timer.. ");
 
@@ -127,8 +127,8 @@ public class ElectionMonitor implements Runnable{
                             }
                         }
                     }
-                    Thread.sleep(2000);
                 }
+                Thread.sleep(2000);
             }
         }
         catch (Exception e){
