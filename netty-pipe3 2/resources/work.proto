@@ -19,6 +19,8 @@ enum HbType {
    LEADERRES = 2;
    NEIGHBORREQ = 3;
    NEIGHBORRES = 4;
+   DISCOVERREQ = 5;
+   DISCOVERRES = 6;
 }
 
 message Heartbeat {
