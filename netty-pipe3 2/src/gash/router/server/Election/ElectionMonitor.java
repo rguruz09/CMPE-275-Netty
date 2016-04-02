@@ -89,6 +89,7 @@ public class ElectionMonitor implements Runnable{
             while (true){
 
                 //if leader, send the HB to its nodes
+
                 if(electionStatus.getStatus() == ElectionStatus.NODE_STATUS.LEADER){
 
                     updatefollowers();
@@ -111,6 +112,7 @@ public class ElectionMonitor implements Runnable{
                             wb =  createLeaderQueryMsg();
                         } else {
                             // Election process
+                            System.out.println("Leader state is "+leaderStatus.getLeader_state());
                             electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
                             electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
                             electionStatus.setTerm(electionStatus.getTerm()+1);

@@ -42,7 +42,6 @@ public class HeartBeatMsg {
                 System.out.println("Its a NEIGHBORREQ.. Respond back");
                 Work.WorkMessage rB = returnHB(msg.getHeader().getNodeId());
                 channel.writeAndFlush(rB);
-                //Vinay: ToDo host address and port no
                 state.getEmon().createInboundIfNew(msg.getHeader().getNodeId(), channel.remoteAddress().toString(), 1200);
                 if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel() == null){
                     System.out.println("Saving the channel info");

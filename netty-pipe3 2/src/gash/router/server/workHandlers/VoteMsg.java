@@ -30,7 +30,7 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
 
         logger.info("Vote msg from " + msg.getHeader().getNodeId());
         if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
-                msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()) {
+                msg.getVote().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()) {
 
             forwardToAll(msg,state,false);
             Work.WorkMessage wm = createVoteRespMsg(msg);
