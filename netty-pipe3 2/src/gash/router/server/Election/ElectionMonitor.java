@@ -44,6 +44,11 @@ public class ElectionMonitor implements Runnable{
         this.followers = followers;
     }
 
+    public void addNewFollowers(int key, FollowerInfo followerInfo){
+        System.out.println("Adding new follower ---- "+ key);
+        followers.put(key, followerInfo);
+    }
+
     public LeaderStatus getLeaderStatus() {
         return leaderStatus;
     }
@@ -104,7 +109,7 @@ public class ElectionMonitor implements Runnable{
                         //Reset the Followers Hmap
                         Work.WorkMessage wb;
 
-                        followers.clear();
+                       // followers.clear();
                         getClusterNodes(state);
 
                         if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
@@ -190,8 +195,8 @@ public class ElectionMonitor implements Runnable{
         Iterator it = followers.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-//            System.out.println(pair.getKey() + " = " + pair.getValue());
             FollowerInfo fi = (FollowerInfo) pair.getValue();
+            System.out.println("Follower nodes are "+fi.getNodeId());
             if(System.currentTimeMillis() - fi.getLastHBResp() > 3){
                 fi.setActive(false);
             }else {

@@ -156,6 +156,7 @@ public class CommonUtils {
         followerInfo.setLastHBResp(System.currentTimeMillis());
         followerInfo.setNodeId(nodeId);
         followerInfo.setVoted(false);
-        state.getElectionMonitor().getFollowers().put(nodeId,followerInfo);
+        state.getElectionMonitor().addNewFollowers(nodeId, followerInfo);
+        //state.getElectionMonitor().getFollowers().put(nodeId,followerInfo);
     }
 }
