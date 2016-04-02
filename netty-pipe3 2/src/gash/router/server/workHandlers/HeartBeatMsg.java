@@ -59,14 +59,13 @@ public class HeartBeatMsg {
                 channel.writeAndFlush(wm);
                 forwardToAll(msg,state,false);
             }else {
-                System.out.println("LEADERRES received");
-                if(msg.getHeader().getNodeId() == state.getConf().getNodeId()) {
+                System.out.println("LEADERRES received.. HB Handler");
+                if(msg.getHeader().getDestination() == state.getConf().getNodeId()) {
                     if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())) {
                         addFollower(state, msg.getHeader().getNodeId());
                     }
                     state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setLastHBResp(System.currentTimeMillis());
                     state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setActive(true);
-
                 }else {
                     forwardToAll(msg, state,false);
                 }
