@@ -60,7 +60,7 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 			PrintUtil.printWork(msg);
 
 		try {
-			System.out.println("Try: Handling the client message");
+			//System.out.println("Try: Handling the client message");
 			if (msg.hasBeat()) {
 				HeartBeatMsg heartBeatMsg = new HeartBeatMsg(state);
 				HeartBeatCommand heartBeatCommand = new HeartBeatCommand(heartBeatMsg);
@@ -122,7 +122,7 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 	 */
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, WorkMessage msg) throws Exception {
-		System.out.println("Vinay: ChannelRead0 Handling the client message");
+		//System.out.println("Vinay: ChannelRead0 Handling the client message");
 		handleMessage(msg, ctx.channel());
 	}
 

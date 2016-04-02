@@ -33,7 +33,7 @@ public class LeaderMsg {
         }else{
             if (msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.WHOISTHELEADER) {
                 System.out.println("Received leader request: Sending ");
-                Work.WorkMessage wm = createLeaderRespMsg(state.getElectionMonitor().getLeaderStatus().getCurLeader());
+                Work.WorkMessage wm = createLeaderRespMsg(state.getElectionMonitor().getLeaderStatus().getCurLeader(), state.getElectionMonitor().getLeaderStatus().getLeader_state());
                 channel.writeAndFlush(wm);
 
             } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
@@ -48,6 +48,7 @@ public class LeaderMsg {
                     state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
                 }else {
                     System.out.println("Response: New Leader is found!!");
+                    System.out.println("NEW LEADER IS "+msg.getLeader().getLeaderId());
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
                     state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
                     state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
@@ -74,7 +75,7 @@ public class LeaderMsg {
         }
     }
 
-    public static Work.WorkMessage createLeaderRespMsg(int dest) {
+    public static Work.WorkMessage createLeaderRespMsg(int dest, Election.LeaderStatus.LeaderState ldst) {
 
         Election.LeaderStatus.Builder ls = Election.LeaderStatus.newBuilder();
         ls.setAction(Election.LeaderStatus.LeaderQuery.THELEADERIS);
@@ -87,7 +88,7 @@ public class LeaderMsg {
 
         ls.setLeaderHost(state.getElectionMonitor().getLeaderStatus().getLeaderHost());
         ls.setLeaderId(state.getElectionMonitor().getLeaderStatus().getCurLeader());
-        ls.setState(state.getElectionMonitor().getLeaderStatus().getLeader_state());
+        ls.setState(ldst);
         ls.setTerm(state.getElectionMonitor().getElectionStatus().getTerm());
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();

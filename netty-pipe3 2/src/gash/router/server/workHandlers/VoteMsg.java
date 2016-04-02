@@ -60,7 +60,7 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                                 addFollower(state,msg.getHeader().getNodeId());
                             }
                             state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
-                            Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1);
+                            Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
                             forwardToAll(wm,state,true);
                         }
                     }else if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.LEADER){
