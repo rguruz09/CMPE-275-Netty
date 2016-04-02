@@ -63,6 +63,10 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                             Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1);
                             forwardToAll(wm,state,true);
                         }
+                    }else if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.LEADER){
+                        if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
+                            addFollower(state,msg.getHeader().getNodeId());
+                        }
                     }
                 } else {
                     System.out.println("Duplicate votes");

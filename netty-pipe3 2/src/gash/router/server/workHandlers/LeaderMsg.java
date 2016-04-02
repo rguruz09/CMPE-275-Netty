@@ -1,5 +1,6 @@
 package gash.router.server.workHandlers;
 
+import gash.router.server.Election.CommonUtils;
 import gash.router.server.Election.ElectionStatus;
 import gash.router.server.Election.LeaderStatus;
 import gash.router.server.ServerState;
@@ -53,6 +54,8 @@ public class LeaderMsg {
                     state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
                     state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
                     state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
+                    Work.WorkMessage vm = createNotifyMsg(msg.getLeader().getTerm(),msg.getLeader().getLeaderId());
+                    CommonUtils.forwardToAll(vm,state,true);
                 }
                 // if its a broadcast msg fwd it to all
                 if(msg.getHeader().getDestination() == -1){
@@ -67,12 +70,6 @@ public class LeaderMsg {
                         }
                     }
                 }
-
-//                if(msg.getLeader().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()){
-//
-//                } else {
-//                    System.out.println("Old leader");
-//                }
             }
         }
     }
@@ -90,7 +87,7 @@ public class LeaderMsg {
 
         ls.setLeaderHost(state.getElectionMonitor().getLeaderStatus().getLeaderHost());
         ls.setLeaderId(state.getElectionMonitor().getLeaderStatus().getCurLeader());
-        ls.setState(Election.LeaderStatus.LeaderState.LEADERALIVE);
+        ls.setState(state.getElectionMonitor().getLeaderStatus().getLeader_state());
         ls.setTerm(state.getElectionMonitor().getElectionStatus().getTerm());
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
@@ -100,6 +97,32 @@ public class LeaderMsg {
         wb.setSecret(123);
 
         return wb.build();
+    }
+
+    public  Work.WorkMessage createNotifyMsg(int term, int dest) {
+
+        Work.WorkState.Builder sb = Work.WorkState.newBuilder();
+        sb.setEnqueued(-1);
+        sb.setProcessed(-1);
+
+        Work.VoteMsg.Builder vm = Work.VoteMsg.newBuilder();
+        vm.setState(sb);
+        vm.setVtype(Work.VoteMsg.VoteMsgType.VOTERES);
+        vm.setTerm(term);
+
+        Common.Header.Builder hb = Common.Header.newBuilder();
+        hb.setNodeId(state.getConf().getNodeId());
+        hb.setDestination(dest);
+        hb.setTime(System.currentTimeMillis());
+        hb.setMaxHops(4);
+
+        Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
+        wb.setHeader(hb);
+        wb.setVote(vm);
+        wb.setSecret(123);
+
+        return wb.build();
+
     }
 
 
