@@ -1,5 +1,7 @@
 package gash.router.server.workHandlers;
 
+import gash.router.server.Election.CommonUtils;
+import gash.router.server.Election.FollowerInfo;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
 import gash.router.server.edges.EdgeMonitor;
@@ -8,6 +10,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pipe.common.Common;
 import pipe.work.Work;
+
+import static gash.router.server.Election.CommonUtils.CreateGenericHBResMsg;
+import static gash.router.server.Election.CommonUtils.addFollower;
+import static gash.router.server.Election.CommonUtils.forwardToAll;
 
 /**
  * Created by vinay on 3/29/16.
@@ -25,21 +31,46 @@ public class HeartBeatMsg {
 
         //
         System.out.println("HB type is " + msg.getBeat().getMsgType());
-         //If its a response msg
-        if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
-            System.out.println("Its a response msg.. drop msg");
-        } else {
-            // Respond back
-            Work.WorkMessage rB = returnHB(msg.getHeader().getNodeId());
-            channel.writeAndFlush(rB);
-            //Vinay: ToDo host address and port no
-            state.getEmon().createInboundIfNew(msg.getHeader().getNodeId(), channel.remoteAddress().toString(), 1200);
-            if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel() == null){
-                System.out.println("Saving the channel info");
-                state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).setChannel(channel);
-            }
 
+        if(msg.getBeat().getMsgType().getType() == Work.HbType.NEIGHBORREQ ||
+                msg.getBeat().getMsgType().getType() == Work.HbType.NEIGHBORRES){
+            //If its a response msg
+            if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
+                System.out.println("Its a response msg.. drop msg");
+            } else {
+                // Respond back
+                Work.WorkMessage rB = returnHB(msg.getHeader().getNodeId());
+                channel.writeAndFlush(rB);
+                //Vinay: ToDo host address and port no
+                state.getEmon().createInboundIfNew(msg.getHeader().getNodeId(), channel.remoteAddress().toString(), 1200);
+                if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel() == null){
+                    System.out.println("Saving the channel info");
+                    state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).setChannel(channel);
+                }
+            }
+        }else if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ ||
+                msg.getBeat().getMsgType().getType() == Work.HbType.LEADERRES){
+            // HB from Leader
+
+        }else if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERREQ ||
+                msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERRES){
+            // Discover req from Leader
+            if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERREQ ){
+                Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.DISCOVERRES, msg.getHeader().getNodeId());
+                channel.writeAndFlush(wm);
+                forwardToAll(msg,state);
+            }else {
+                if(msg.getHeader().getNodeId() == state.getConf().getNodeId()){
+                    if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
+                        addFollower(state,msg.getHeader().getNodeId());
+                    }
+                }else {
+                    forwardToAll(msg,state);
+                }
+            }
         }
+
+
 
 //        if(msg.getHeader().getDestination() != state.getConf().getNodeId()){
 //

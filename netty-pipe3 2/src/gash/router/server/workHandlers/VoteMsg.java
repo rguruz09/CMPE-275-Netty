@@ -1,6 +1,7 @@
 package gash.router.server.workHandlers;
 
 import gash.router.server.Election.ElectionStatus;
+import gash.router.server.Election.FollowerInfo;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
 import io.netty.channel.Channel;
@@ -9,6 +10,9 @@ import org.slf4j.LoggerFactory;
 import pipe.common.Common;
 import pipe.election.Election;
 import pipe.work.Work;
+
+import static gash.router.server.Election.CommonUtils.addFollower;
+import static gash.router.server.Election.CommonUtils.forwardToAll;
 
 /**
  * Created by vinay on 4/1/16.
@@ -28,7 +32,7 @@ import pipe.work.Work;
         if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
                 msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()) {
 
-            forwardToAll(msg);
+            forwardToAll(msg,state);
             Work.WorkMessage wm = createVoteRespMsg(msg);
             channel.writeAndFlush(wm);
         } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
@@ -39,7 +43,8 @@ import pipe.work.Work;
                 // If Im the candidate process the response else not
 
                 //Check for redundent votes
-                if (! state.getElectionMonitor().getElectionStatus().getVoters().containsKey(msg.getHeader().getNodeId())) {
+                if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
+                       ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) {
                     if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
                         state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
                         // Check if i got majority
@@ -51,8 +56,12 @@ import pipe.work.Work;
                             state.getElectionMonitor().getLeaderStatus().setCurLeader(state.getConf().getNodeId());
                             state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
 
+                            if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
+                                addFollower(state,msg.getHeader().getNodeId());
+                            }
+                            state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
                             Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1);
-                            forwardToAll(wm);
+                            forwardToAll(wm,state);
                         }
                     }
                 } else {
@@ -67,27 +76,12 @@ import pipe.work.Work;
                     Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getNodeId()).getChannel();
                     c.writeAndFlush(msg);
                 } else {
-                    forwardToAll(msg);
+                    forwardToAll(msg, state);
                 }
             }
         }
 
     }
-
-
-    public void forwardToAll(Work.WorkMessage msg){
-        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-            if (ei.isActive() && ei.getChannel() != null) {
-                ei.getChannel().writeAndFlush(msg);
-            }
-        }
-        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-            if (ei.isActive() && ei.getChannel() != null) {
-                ei.getChannel().writeAndFlush(msg);
-            }
-        }
-    }
-
 
     public Work.WorkMessage createVoteRespMsg(Work.WorkMessage msg) {
 

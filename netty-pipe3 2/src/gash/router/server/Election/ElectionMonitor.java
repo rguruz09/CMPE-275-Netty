@@ -6,6 +6,12 @@ import pipe.common.Common;
 import pipe.election.Election;
 import pipe.work.Work;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import static gash.router.server.Election.CommonUtils.*;
+
 /**
  * Created by Raghu on 3/31/16.
  */
@@ -16,6 +22,7 @@ public class ElectionMonitor implements Runnable{
     private long lastHBReceived;
     private ElectionStatus electionStatus;
     private LeaderStatus leaderStatus;
+    private HashMap<Integer, FollowerInfo> followers;
 
     public ElectionMonitor(ServerState state) {
 
@@ -26,6 +33,15 @@ public class ElectionMonitor implements Runnable{
         lastHBReceived = System.currentTimeMillis();
         electionStatus = new ElectionStatus();
         leaderStatus = new LeaderStatus();
+        followers = new HashMap<Integer, FollowerInfo>();
+    }
+
+    public HashMap<Integer, FollowerInfo> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(HashMap<Integer, FollowerInfo> followers) {
+        this.followers = followers;
     }
 
     public LeaderStatus getLeaderStatus() {
@@ -60,7 +76,6 @@ public class ElectionMonitor implements Runnable{
         this.lastHBReceived = lastHBReceived;
     }
 
-
     @Override
     public void run() {
 
@@ -69,44 +84,56 @@ public class ElectionMonitor implements Runnable{
             Thread.sleep(10000);
             //Thread.sleep(state.getConf().getHeartbeatDt());
             while (true){
-                System.out.println(" Check the last HB timer.. ");
 
-                if(electionStatus.getStatus() != ElectionStatus.NODE_STATUS.LEADER &&  (System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
-                    System.out.println("No HB from leader.. ill be the candidate");
+                //if leader, send the HB to its nodes
+                if(electionStatus.getStatus() == ElectionStatus.NODE_STATUS.LEADER){
 
-                    Work.WorkMessage wb;
+                    updatefollowers();
+                    Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
+                    forwardToAll(wm,state);
+                }else {
+                    System.out.println(" Check the last HB timer.. ");
 
-                    if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
-                        //     Query for  Leader
-                        wb =  createLeaderQueryMsg();
-                    } else {
-                        // Election process
-                        electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
-                        electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
-                        electionStatus.setTerm(electionStatus.getTerm()+1);
-                        leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
-                        wb = createVoteReqMsg();
-                    }
+                    if((System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
+                        System.out.println("No HB from leader.. ill be the candidate");
 
-                    for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
-                        if(ei.isActive() && ei.getChannel() != null){
-                            ei.getChannel().writeAndFlush(wb);
+                        //Reset the Followers Hmap
+                        Work.WorkMessage wb;
+
+                        followers.clear();
+                        getClusterNodes(state);
+
+                        if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
+                            //     Query for  Leader
+                            wb =  createLeaderQueryMsg();
+                        } else {
+                            // Election process
+                            electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
+                            electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
+                            electionStatus.setTerm(electionStatus.getTerm()+1);
+                            leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                            wb = createVoteReqMsg();
+                        }
+
+                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
+                            if(ei.isActive() && ei.getChannel() != null){
+                                ei.getChannel().writeAndFlush(wb);
+                            }
+                        }
+
+                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
+                            if(ei.isActive() && ei.getChannel() != null){
+                                ei.getChannel().writeAndFlush(wb);
+                            }
                         }
                     }
-
-                    for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
-                        if(ei.isActive() && ei.getChannel() != null){
-                            ei.getChannel().writeAndFlush(wb);
-                        }
-                    }
+                    Thread.sleep(2000);
                 }
-                Thread.sleep(state.getConf().getHeartbeatDt());
             }
         }
         catch (Exception e){
             System.out.println(e.getStackTrace());
         }
-
     }
 
     public Work.WorkMessage createLeaderQueryMsg(){
@@ -128,7 +155,6 @@ public class ElectionMonitor implements Runnable{
 
         return wb.build();
     }
-
 
     public Work.WorkMessage createVoteReqMsg(){
 
@@ -152,5 +178,20 @@ public class ElectionMonitor implements Runnable{
         wb.setSecret(123);
         wb.setVote(vm);
         return wb.build();
+    }
+
+    public void updatefollowers(){
+
+        Iterator it = followers.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+//            System.out.println(pair.getKey() + " = " + pair.getValue());
+            FollowerInfo fi = (FollowerInfo) pair.getValue();
+            if(System.currentTimeMillis() - fi.getLastHBResp() > 3){
+                fi.setActive(false);
+            }
+            it.remove(); // avoids a ConcurrentModificationException
+        }
+
     }
 }
