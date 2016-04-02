@@ -56,6 +56,7 @@ public class HeartBeatMsg {
             if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ){
                 System.out.println("LEADERREQ received");
                 Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.LEADERRES, msg.getHeader().getNodeId());
+                state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
                 channel.writeAndFlush(wm);
                 forwardToAll(msg,state,false);
             }else {

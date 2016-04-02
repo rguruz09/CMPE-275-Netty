@@ -189,6 +189,8 @@ public class ElectionMonitor implements Runnable{
             FollowerInfo fi = (FollowerInfo) pair.getValue();
             if(System.currentTimeMillis() - fi.getLastHBResp() > 3){
                 fi.setActive(false);
+            }else {
+                fi.setActive(true);
             }
             it.remove(); // avoids a ConcurrentModificationException
         }
