@@ -5,6 +5,7 @@ import gash.router.server.Election.FollowerInfo;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
 import io.netty.channel.Channel;
+import io.netty.util.internal.SystemPropertyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pipe.common.Common;
@@ -73,11 +74,12 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                 }
             } else {
                 // 2. If not for me send it to appropriate node.
-                if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getNodeId())) {
-                    Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getNodeId()).getChannel();
+                System.out.println("Forwarding vote msg from "+msg.getHeader().getNodeId()+" to "+msg.getHeader().getDestination());
+                if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())) {
+                    Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
                     c.writeAndFlush(msg);
-                } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getNodeId())) {
-                    Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getNodeId()).getChannel();
+                } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())) {
+                    Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
                     c.writeAndFlush(msg);
                 } else {
                     forwardToAll(msg, state,false);

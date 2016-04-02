@@ -33,7 +33,7 @@ public class LeaderMsg {
         }else{
             if (msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.WHOISTHELEADER) {
                 System.out.println("Received leader request: Sending ");
-                Work.WorkMessage wm = createLeaderRespMsg(state.getElectionMonitor().getLeaderStatus().getCurLeader(), state.getElectionMonitor().getLeaderStatus().getLeader_state());
+                Work.WorkMessage wm = createLeaderRespMsg(msg.getHeader().getNodeId(), state.getElectionMonitor().getLeaderStatus().getLeader_state());
                 channel.writeAndFlush(wm);
 
             } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
