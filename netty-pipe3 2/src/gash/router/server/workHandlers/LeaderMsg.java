@@ -1,5 +1,6 @@
 package gash.router.server.workHandlers;
 
+import gash.router.server.Election.ElectionStatus;
 import gash.router.server.Election.LeaderStatus;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
@@ -42,11 +43,13 @@ public class LeaderMsg {
                     System.out.println("Response: Leader Unknown");
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
                 }else {
-                    System.out.println("Response: Leader details");
+                    System.out.println("Response: New Leader is found!!");
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
                     state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
                     state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
                     state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
+                    state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
+                    state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
                 }
                 // if its a broadcast msg fwd it to all
                 if(msg.getHeader().getDestination() == -1){
