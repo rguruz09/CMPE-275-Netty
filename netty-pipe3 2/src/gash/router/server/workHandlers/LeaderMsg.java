@@ -87,7 +87,7 @@ public class LeaderMsg {
 
         ls.setLeaderHost(state.getElectionMonitor().getLeaderStatus().getLeaderHost());
         ls.setLeaderId(state.getElectionMonitor().getLeaderStatus().getCurLeader());
-        ls.setState(state.getElectionMonitor().getLeaderStatus().getLeader_state());
+        ls.setState(Election.LeaderStatus.LeaderState.LEADERALIVE);
         ls.setTerm(state.getElectionMonitor().getElectionStatus().getTerm());
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
