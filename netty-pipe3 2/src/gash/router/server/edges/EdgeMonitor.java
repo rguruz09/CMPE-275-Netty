@@ -15,6 +15,7 @@
  */
 package gash.router.server.edges;
 
+import gash.router.server.Election.CommonUtils;
 import gash.router.server.WorkInit;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -93,7 +94,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 		hb.setNodeId(state.getConf().getNodeId());
 		hb.setDestination(-1);
 		hb.setTime(System.currentTimeMillis());
-		hb.setMaxHops(4);
+		hb.setMaxHops(CommonUtils.MAX_HOPS);
 
 		WorkMessage.Builder wb = WorkMessage.newBuilder();
 		wb.setHeader(hb);
@@ -120,7 +121,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 		hb.setNodeId(state.getConf().getNodeId());
 		hb.setDestination(dest);
 		hb.setTime(System.currentTimeMillis());
-		hb.setMaxHops(4);
+		hb.setMaxHops(CommonUtils.MAX_HOPS);
 
 		WorkMessage.Builder wb = WorkMessage.newBuilder();
 		wb.setHeader(hb);

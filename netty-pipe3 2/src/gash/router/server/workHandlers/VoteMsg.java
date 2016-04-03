@@ -1,5 +1,6 @@
 package gash.router.server.workHandlers;
 
+import gash.router.server.Election.CommonUtils;
 import gash.router.server.Election.ElectionStatus;
 import gash.router.server.Election.FollowerInfo;
 import gash.router.server.ServerState;
@@ -104,7 +105,7 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
         hb.setNodeId(state.getConf().getNodeId());
         hb.setDestination(msg.getHeader().getNodeId());
         hb.setTime(System.currentTimeMillis());
-        hb.setMaxHops(4);
+        hb.setMaxHops(CommonUtils.MAX_HOPS);
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);

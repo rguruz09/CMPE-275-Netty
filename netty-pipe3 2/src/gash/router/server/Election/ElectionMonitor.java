@@ -155,7 +155,7 @@ public class ElectionMonitor implements Runnable{
 		hb.setNodeId(state.getConf().getNodeId());
 		hb.setDestination(-1);
 		hb.setTime(System.currentTimeMillis());
-		hb.setMaxHops(4);
+		hb.setMaxHops(CommonUtils.MAX_HOPS);
 
 		Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
 		wb.setHeader(hb);
@@ -181,7 +181,7 @@ public class ElectionMonitor implements Runnable{
         hb.setNodeId(state.getConf().getNodeId());
         hb.setDestination(-1);
         hb.setTime(System.currentTimeMillis());
-        hb.setMaxHops(4);
+        hb.setMaxHops(CommonUtils.MAX_HOPS);
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);

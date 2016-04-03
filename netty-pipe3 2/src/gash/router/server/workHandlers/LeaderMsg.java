@@ -84,7 +84,7 @@ public class LeaderMsg {
         hb.setNodeId(state.getConf().getNodeId());
         hb.setDestination(dest);
         hb.setTime(System.currentTimeMillis());
-        hb.setMaxHops(4);
+        hb.setMaxHops(CommonUtils.MAX_HOPS);
 
         ls.setLeaderHost(state.getElectionMonitor().getLeaderStatus().getLeaderHost());
         ls.setLeaderId(state.getElectionMonitor().getLeaderStatus().getCurLeader());
@@ -115,7 +115,7 @@ public class LeaderMsg {
         hb.setNodeId(state.getConf().getNodeId());
         hb.setDestination(dest);
         hb.setTime(System.currentTimeMillis());
-        hb.setMaxHops(4);
+        hb.setMaxHops(CommonUtils.MAX_HOPS);
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);

@@ -162,7 +162,7 @@ public class HeartBeatMsg {
         hb.setNodeId(state.getConf().getNodeId());
         hb.setDestination(dest);
         hb.setTime(System.currentTimeMillis());
-        hb.setMaxHops(2);
+        hb.setMaxHops(CommonUtils.MAX_HOPS);
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);
