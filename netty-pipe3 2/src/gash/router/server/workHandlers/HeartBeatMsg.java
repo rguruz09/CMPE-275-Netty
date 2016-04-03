@@ -9,6 +9,7 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pipe.common.Common;
+import pipe.election.Election;
 import pipe.work.Work;
 
 import static gash.router.server.Election.CommonUtils.CreateGenericHBResMsg;
@@ -35,8 +36,8 @@ public class HeartBeatMsg {
         if(msg.getBeat().getMsgType().getType() == Work.HbType.NEIGHBORREQ ||
                 msg.getBeat().getMsgType().getType() == Work.HbType.NEIGHBORRES){
             //If its a response msg
-            if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
-                System.out.println("Its a NEIGHBORRES from NODE "+msg.getHeader().getNodeId());
+            if (msg.getHeader().getDestination() == state.getConf().getNodeId() || msg.getHeader().getNodeId() == state.getConf().getNodeId()) {
+               // System.out.println("Its a NEIGHBORRES from NODE "+msg.getHeader().getNodeId());
             } else {
                 // Respond back
                 System.out.println("Its a NEIGHBORREQ from NODE "+msg.getHeader().getNodeId());
@@ -53,13 +54,17 @@ public class HeartBeatMsg {
         }else if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ ||
                 msg.getBeat().getMsgType().getType() == Work.HbType.LEADERRES){
             // HB from Leader
-            if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ){
+            if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ &&
+                    msg.getHeader().getNodeId() != state.getConf().getNodeId()){
                 System.out.println("LEADERREQ received from NODE "+msg.getHeader().getNodeId());
-                Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.LEADERRES, msg.getHeader().getNodeId());
                 state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
+                state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getHeader().getNodeId());
+                state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
+                //state.getElectionMonitor().getLeaderStatus().setLeaderHost(ms);
+                Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.LEADERRES, msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
                 forwardToAll(msg,state,false);
-            }else {
+            }else if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERRES){
                 System.out.println("LEADERRES received from NODE "+msg.getHeader().getNodeId());
                 if(msg.getHeader().getDestination() == state.getConf().getNodeId()) {
                     if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())) {
@@ -75,12 +80,13 @@ public class HeartBeatMsg {
         }else if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERREQ ||
                 msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERRES){
             // Discover req from Leader
-            if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERREQ ){
+            if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERREQ &&
+                    msg.getHeader().getNodeId() != state.getConf().getNodeId()){
                 System.out.println("DISCOVERREQ received from NODE "+msg.getHeader().getNodeId());
                 Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.DISCOVERRES, msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
                 forwardToAll(msg,state,false);
-            }else {
+            }else if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERRES) {
                 System.out.println("DISCOVERRES received from NODE "+msg.getHeader().getNodeId());
                 if(msg.getHeader().getNodeId() == state.getConf().getNodeId()){
                     if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
