@@ -1,15 +1,19 @@
 package gash.router.server.CommandHandlers;
 
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pipe.common.Common;
 import routing.Pipe;
 
-import static sun.font.FontManager.logger;
 
 /**
  * Created by Student on 4/3/16.
  */
 public class TextMsg {
+
+    protected static Logger logger = LoggerFactory.getLogger("cmd");
+
     public void handleTextMsg(Pipe.CommandMessage msg, Channel channel){
         System.out.println("Text Message");
 
