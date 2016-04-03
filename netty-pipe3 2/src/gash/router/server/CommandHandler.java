@@ -22,7 +22,9 @@ import gash.router.container.RoutingConf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import pipe.common.Common;
 import pipe.common.Common.Failure;
+import pipe.storage.Storage;
 import routing.Pipe.CommandMessage;
 
 /**
@@ -63,9 +65,25 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 			// TODO How can you implement this without if-else statements?
 			if (msg.hasPing()) {
 				logger.info("ping from " + msg.getHeader().getNodeId());
-			} else if (msg.hasMessage()) {
-				logger.info(msg.getMessage());
-			} else {
+			} else if (msg.hasMessage()  ) {
+				//System.out.println(msg.getMessage());
+				logger.info("Received Message from client : "+msg.getMessage());
+				//logger.info("image byte is "+String.valueOf(msg.getMessageBytes()));
+				System.out.println("Sending reply ......");
+				Common.Header.Builder hb = Common.Header.newBuilder();
+				hb.setNodeId(12);
+				hb.setTime(System.currentTimeMillis());
+				hb.setDestination(-1);
+
+				CommandMessage.Builder rb = CommandMessage.newBuilder();
+				rb.setHeader(hb);
+				rb.setMessage("Reply from server");
+				channel.writeAndFlush(rb.build());
+			}
+			else if(msg.hasQuery()){
+				System.out.println("Server receieved an image from client....");
+				Storage.Query.Builder qb = Storage.Query.newBuilder();
+				logger.info(String.valueOf(qb.getData()));
 			}
 
 		} catch (Exception e) {

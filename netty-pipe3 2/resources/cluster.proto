@@ -1,0 +1,74 @@
+option optimize_for = SPEED;
+option java_package = "routing";
+
+message ClusterMessageHeader {
+    // Each group decides a unique name of their cluster. The cluster that ORIGIONALLY creates
+    // this message sets this value.
+    required string origin_cluster_name = 1;
+    
+    // The id of the node that created this message. The cluster/node that ORIGIONALLY creates
+    // this message sets this value.
+    required int32 origin_node_id = 2;
+    
+    // Make up a number to use as a message id. This way, some time in the future when a message comes back, you know which
+    // id it is a reply for.
+    required int64 message_unique_id = 3;
+    
+    // If you're replying to a message, set this value to the original message id.
+    // For example, when replying to a file write, or a hash compute message.
+    optional int64 reply_to_message_unique_id = 3;
+    
+    // This factor limits the distance that a msg travels from the originating 
+    // node. Default (-1) is the whole network (not restricted).
+    // Each time this message gets forwarded by a CLUSTER, you must decrement this number.
+    // If it reaches 0, then you don't forward the message on.
+    optional int32 max_remaining_hops = 20 [default = -1];
+}
+
+message ClusterMessage {
+    required ClusterMessageHeader header = 1;
+    
+    oneof payload {
+        FileWriteMessage fileWritemessage = 3;
+      
+        FileWriteResponse fileWriteResponse = 4;
+
+        ComputeHashMessage computeHashMessage = 5;
+
+        ComputeHashResponse computeHashResponse = 6;
+        
+        Failure failure = 7;
+   }
+}
+
+message FileWriteMessage {
+	required string file_name = 1;
+	required string file_contents = 2;
+}
+
+message FileWriteResponse {
+	// The name of the cluster where the file was written.
+    required string destination_cluster_name = 1;
+    
+    // The id of the node in the cluster where the file was written.
+    required int32 destination_node_id = 2;
+}
+
+message ComputeHashMessage {
+    // The file name to compute a hash for.
+	required string file_name = 1;
+}
+
+message ComputeHashResponse {
+    // The file name that was used.
+	required string file_name = 1;
+	
+    // The hash that was computed.
+	required string hash = 2;
+}
+
+message Failure {
+    // If you want, provide some info about the failure.
+    optional string message = 1;
+}
+
