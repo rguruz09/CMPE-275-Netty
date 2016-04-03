@@ -14,6 +14,8 @@ public class ErrorCommand implements Command {
     }
     @Override
     public void handleMessage(Work.WorkMessage msg, Channel channel) {
+
         errorMsg.handleErrMsg(msg, channel);
+
     }
 }

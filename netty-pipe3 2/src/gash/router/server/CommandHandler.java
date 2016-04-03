@@ -15,6 +15,7 @@
  */
 package gash.router.server;
 
+import gash.router.server.CommandHandlers.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,24 +67,21 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 			if (msg.hasPing()) {
 				logger.info("ping from " + msg.getHeader().getNodeId());
 			} else if (msg.hasMessage()  ) {
-				//System.out.println(msg.getMessage());
-				logger.info("Received Message from client : "+msg.getMessage());
-				//logger.info("image byte is "+String.valueOf(msg.getMessageBytes()));
-				System.out.println("Sending reply ......");
-				Common.Header.Builder hb = Common.Header.newBuilder();
-				hb.setNodeId(12);
-				hb.setTime(System.currentTimeMillis());
-				hb.setDestination(-1);
-
-				CommandMessage.Builder rb = CommandMessage.newBuilder();
-				rb.setHeader(hb);
-				rb.setMessage("Reply from server");
-				channel.writeAndFlush(rb.build());
-			}
-			else if(msg.hasQuery()){
-				System.out.println("Server receieved an image from client....");
-				Storage.Query.Builder qb = Storage.Query.newBuilder();
-				logger.info(String.valueOf(qb.getData()));
+				TextMsg textMsg = new TextMsg();
+				TextCommand textCommand = new TextCommand(textMsg);
+				textCommand.handleRequest(msg, channel);
+			} else if(msg.hasQuery()){
+				QueryMsg queryMsg = new QueryMsg();
+				QueryCommand queryCommand = new QueryCommand(queryMsg);
+				queryCommand.handleRequest(msg,channel);
+			} else if(msg.hasResponse()){
+				ResponseMsg responseMsg = new ResponseMsg();
+				ResponseCommand responseCommand = new ResponseCommand(responseMsg);
+				responseCommand.handleRequest(msg,channel);
+			} else if(msg.hasErr()){
+				System.out.println("Error...!!!");
+			} else {
+				System.out.println("Donno what you mean..");
 			}
 
 		} catch (Exception e) {
