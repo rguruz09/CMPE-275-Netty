@@ -2,16 +2,22 @@ option optimize_for = SPEED;
 option java_package = "routing";
 
 import "common.proto";
+import "storage.proto";
 
 message CommandMessage {
-   required Header header = 1;
+    required Header header = 1;
 
     oneof payload {
-      // a client (external) sanity check for testing
-      bool ping = 3;
+        // a client (external) sanity check for testing
+        bool ping = 3;
 
-      string message = 4;
-      
-      Failure err = 5;
-   }
+        string message = 4;
+
+        Failure err = 5;
+
+        Response response = 6;
+
+        Query query = 7;
+
+    }
 }

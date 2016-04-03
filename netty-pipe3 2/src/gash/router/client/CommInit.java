@@ -19,6 +19,10 @@ public class CommInit extends ChannelInitializer<SocketChannel> {
 		compress = enableCompression;
 	}
 
+	public CommInit(){
+
+	}
+
 	@Override
 	public void initChannel(SocketChannel ch) throws Exception {
 		ChannelPipeline pipeline = ch.pipeline();

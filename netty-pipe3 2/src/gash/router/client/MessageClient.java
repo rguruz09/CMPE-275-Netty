@@ -15,7 +15,9 @@
  */
 package gash.router.client;
 
+import com.google.protobuf.ByteString;
 import pipe.common.Common.Header;
+import pipe.storage.Storage;
 import routing.Pipe.CommandMessage;
 
 /**
@@ -57,6 +59,74 @@ public class MessageClient {
 
 			// using queue
 			CommConnection.getInstance().enqueue(rb.build());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void sendMessage(String message) {
+		// construct the message to send
+		Header.Builder hb = Header.newBuilder();
+		hb.setNodeId(12);
+		hb.setTime(System.currentTimeMillis());
+		hb.setDestination(-1);
+
+		CommandMessage.Builder rb = CommandMessage.newBuilder();
+		rb.setHeader(hb);
+		//rb.setPing(true);
+		rb.setMessage(message);
+
+
+		try {
+
+			// using queue
+			CommConnection.getInstance().enqueue(rb.build());
+			//CommConnection.getInstance().enqueue("hello from client");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void sendImage(byte[] image) {
+		// construct the message to send
+		Header.Builder hb = Header.newBuilder();
+		hb.setNodeId(12);
+		hb.setTime(System.currentTimeMillis());
+		hb.setDestination(-1);
+
+		Storage.Query.Builder qb = Storage.Query.newBuilder();
+		qb.setAction(Storage.Action.STORE);
+		qb.setData(ByteString.copyFrom(image));
+
+		CommandMessage.Builder rb = CommandMessage.newBuilder();
+		rb.setHeader(hb);
+		//rb.setPing(true);
+		rb.setQuery(qb);
+
+		try {
+			CommConnection.getInstance().enqueue(rb.build());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	public void sendFile(byte[] file) {
+		// construct the message to send
+		Header.Builder hb = Header.newBuilder();
+		hb.setNodeId(12);
+		hb.setTime(System.currentTimeMillis());
+		hb.setDestination(-1);
+
+		CommandMessage.Builder rb = CommandMessage.newBuilder();
+		rb.setHeader(hb);
+		//rb.setPing(true);
+		rb.setMessageBytes(ByteString.copyFrom(file));
+		//rb.setMessage(image.toString());
+
+		try {
+
+			// using queue
+			CommConnection.getInstance().enqueue(rb.build());
+			//CommConnection.getInstance().enqueue("hello from client");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

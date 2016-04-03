@@ -152,11 +152,14 @@ public class CommConnection {
 		try {
 			CommandInit si = new CommandInit(null, false);
 			Bootstrap b = new Bootstrap();
-			b.group(group).channel(NioSocketChannel.class).handler(si);
+			//b.group(group).channel(NioSocketChannel.class).handler(si);
 			b.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000);
 			b.option(ChannelOption.TCP_NODELAY, true);
 			b.option(ChannelOption.SO_KEEPALIVE, true);
 
+			b.group(group);
+			b.channel(NioSocketChannel.class);
+			b.handler(new CommInit());
 			// Make the connection attempt.
 			channel = b.connect(host, port).syncUninterruptibly();
 
