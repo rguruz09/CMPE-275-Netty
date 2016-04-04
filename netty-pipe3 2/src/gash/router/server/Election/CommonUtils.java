@@ -1,10 +1,12 @@
 package gash.router.server.Election;
 
+import gash.router.client.ClientHealper;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
 import pipe.common.Common;
 import pipe.election.Election;
 import pipe.work.Work;
+import storage.Storage;
 
 import java.util.HashMap;
 
@@ -241,4 +243,45 @@ public class CommonUtils {
         state.getElectionMonitor().addNewFollowers(nodeId, followerInfo);
         //state.getElectionMonitor().getFollowers().put(nodeId,followerInfo);
     }
+
+    public static Storage.Response.Builder CreateCmdRes(Work.WorkMessage msg, boolean success, int seq){
+
+
+        Storage.Response.Builder rsp = Storage.Response.newBuilder();
+        rsp.setAction(msg.getCommand().getQuery().getAction());
+        rsp.setSuccess(success);
+        rsp.setSequenceNo(seq);
+//        rsp.setMetaData(meta);
+
+        return rsp;
+
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

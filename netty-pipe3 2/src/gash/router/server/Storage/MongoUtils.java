@@ -88,23 +88,23 @@ public class MongoUtils {
         DBCursor cursor = meta.find(whereQuery);
         while(cursor.hasNext()) {
             result = cursor.next();
-            System.out.println(cursor.next());
+           // System.out.println(cursor.next());
+            break;
         }
         return result;
     }
 
-    public void getAllChunks(DBObject obj){
+    public DBCursor getAllChunks(DBObject obj){
         Object o = obj.get("_id");
+        DBCursor cursor=null;
         if(obj != null){
             DBCollection chunk = db.getCollection("chunks");
             DBObject result = null;
             BasicDBObject whereQuery = new BasicDBObject();
             whereQuery.put("parent_id", o );
-            DBCursor cursor = chunk.find(whereQuery);
-            while(cursor.hasNext()) {
-                result = cursor.next();
-                System.out.println(cursor.next());
-            }
+            cursor = chunk.find(whereQuery);
+//
         }
+        return  cursor;
     }
 }
