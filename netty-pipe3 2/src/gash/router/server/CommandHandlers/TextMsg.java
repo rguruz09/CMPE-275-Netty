@@ -38,7 +38,7 @@ public class TextMsg {
             }else {
                 System.out.println("I am not the Leader and forward it to leader");
                 Work.WorkMessage workMessage = CommandsUtils.getWorkFromCommand(msg,state);
-                CommonUtils.forwardToAll(workMessage,state,false);
+                CommonUtils.forwardToAll(workMessage,state,false,msg.getHeader().getNodeId());
             }
 
         }

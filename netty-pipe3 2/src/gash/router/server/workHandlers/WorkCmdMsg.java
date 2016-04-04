@@ -27,7 +27,7 @@ public class WorkCmdMsg {
                 }
             } else {
                 System.out.println("Forwording to ALL.....");
-                CommonUtils.forwardToAll(msg,state,false);
+                CommonUtils.forwardToAll(msg,state,false,msg.getHeader().getNodeId());
             }
         }
     }

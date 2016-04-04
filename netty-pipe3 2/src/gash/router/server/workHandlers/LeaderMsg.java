@@ -56,7 +56,7 @@ public class LeaderMsg {
                     state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
                     state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
                     Work.WorkMessage vm = createNotifyMsg(msg.getLeader().getTerm(),msg.getLeader().getLeaderId());
-                    CommonUtils.forwardToAll(vm,state,true);
+                    CommonUtils.forwardToAll(vm,state,false,msg.getHeader().getNodeId());
                 }
                 // if its a broadcast msg fwd it to all
                 if(msg.getHeader().getDestination() == -1){

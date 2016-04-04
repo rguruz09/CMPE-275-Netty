@@ -144,7 +144,7 @@ public class CommonUtils {
 //
 //    }
 
-    public static void forwardToAll(Work.WorkMessage msg, ServerState state, boolean all){
+    public static void forwardToAll(Work.WorkMessage msg, ServerState state, boolean all, int inb){
 
         if(msg.getHeader().getMaxHops() > 0){
 
@@ -160,7 +160,7 @@ public class CommonUtils {
                 }
             }
             for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-                if (ei.isActive() && ei.getChannel() != null) {
+                if (ei.isActive() && ei.getChannel() != null &&  ( all || (ei.getRef() != inb) )) {
                     ei.getChannel().writeAndFlush(msg1);
                 }
             }

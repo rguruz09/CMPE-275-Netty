@@ -99,7 +99,7 @@ public class ElectionMonitor implements Runnable{
 
                     updatefollowers();
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
-                    forwardToAll(wm,state,true);
+                    forwardToAll(wm,state,true,-1);
                 }else {
                     System.out.println(" Check the last HB timer.. ");
 

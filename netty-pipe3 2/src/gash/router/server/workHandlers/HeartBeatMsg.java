@@ -63,7 +63,7 @@ public class HeartBeatMsg {
                 //state.getElectionMonitor().getLeaderStatus().setLeaderHost(ms);
                 Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.LEADERRES, msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
-                forwardToAll(msg,state,false);
+                forwardToAll(msg,state,false,msg.getHeader().getNodeId());
             }else if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERRES){
                 System.out.println("LEADERRES received from NODE "+msg.getHeader().getNodeId());
                 if(msg.getHeader().getDestination() == state.getConf().getNodeId()) {
@@ -73,7 +73,7 @@ public class HeartBeatMsg {
                     state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setLastHBResp(System.currentTimeMillis());
                     state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setActive(true);
                 }else {
-                    forwardToAll(msg, state,false);
+                    forwardToAll(msg, state,false,msg.getHeader().getNodeId());
                 }
             }
             //If it's a DISCOVER msg
@@ -85,7 +85,7 @@ public class HeartBeatMsg {
                 System.out.println("DISCOVERREQ received from NODE "+msg.getHeader().getNodeId());
                 Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.DISCOVERRES, msg.getHeader().getNodeId());
                 channel.writeAndFlush(wm);
-                forwardToAll(msg,state,false);
+                forwardToAll(msg,state,false,msg.getHeader().getNodeId());
             }else if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERRES) {
                 System.out.println("DISCOVERRES received from NODE "+msg.getHeader().getNodeId());
                 if(msg.getHeader().getNodeId() == state.getConf().getNodeId()){
@@ -93,7 +93,7 @@ public class HeartBeatMsg {
                         addFollower(state,msg.getHeader().getNodeId());
                     }
                 }else {
-                    forwardToAll(msg,state,false);
+                    forwardToAll(msg,state,false,msg.getHeader().getNodeId());
                 }
             }
         }

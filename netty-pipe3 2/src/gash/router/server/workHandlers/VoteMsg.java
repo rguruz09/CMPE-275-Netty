@@ -34,7 +34,7 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
         if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
                 msg.getVote().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()) {
 
-            forwardToAll(msg,state,false);
+            forwardToAll(msg,state,false,msg.getHeader().getNodeId());
             Work.WorkMessage wm = createVoteRespMsg(msg);
             channel.writeAndFlush(wm);
         } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
@@ -63,7 +63,7 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                             }
                             state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
                             Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
-                            forwardToAll(wm,state,true);
+                            forwardToAll(wm,state,false,msg.getHeader().getNodeId());
                         }
                     }else if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.LEADER){
                         if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
@@ -83,7 +83,7 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                     Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
                     c.writeAndFlush(msg);
                 } else {
-                    forwardToAll(msg, state,false);
+                    forwardToAll(msg, state,false,msg.getHeader().getNodeId());
                 }
             }
         }
