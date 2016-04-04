@@ -3,6 +3,7 @@ package gash.router.server.Election;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
 import pipe.common.Common;
+import pipe.election.Election;
 import pipe.work.Work;
 
 import java.util.HashMap;
@@ -149,6 +150,10 @@ public class CommonUtils {
 
             Work.WorkMessage msg1 = updateMaxHops(msg);
 
+            if(msg1.hasCommand()){
+                System.out.println("command -------------------->>>>>>>>>>>>>");
+            }
+
             for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
                 if (ei.isActive() && ei.getChannel() != null) {
                         ei.getChannel().writeAndFlush(msg1);
@@ -166,9 +171,11 @@ public class CommonUtils {
 
     public static Work.WorkMessage updateMaxHops(Work.WorkMessage msg){
 
-        Work.WorkState.Builder sb = Work.WorkState.newBuilder();
-        sb.setEnqueued(-1);
-        sb.setProcessed(-1);
+
+        Work.Heartbeat.Builder bb = null;
+        Election.LeaderStatus.Builder eb = null;
+        Work.VoteMsg.Builder vb = null;
+        Work.Command.Builder cb = null;
 
         Work.HeartBeatMsgType.Builder heartBeatMsgType = Work.HeartBeatMsgType.newBuilder();
         heartBeatMsgType.setType(msg.getBeat().getMsgType().getType());
@@ -176,17 +183,52 @@ public class CommonUtils {
         Common.Header.Builder hb = Common.Header.newBuilder();
         hb.setNodeId(msg.getHeader().getNodeId());
         hb.setDestination(msg.getHeader().getDestination());
-        hb.setTime(System.currentTimeMillis());
+        hb.setTime(msg.getHeader().getTime());
         hb.setMaxHops(msg.getHeader().getMaxHops()-1);
 
-        Work.Heartbeat.Builder bb = Work.Heartbeat.newBuilder();
-        bb.setState(sb);
-        bb.setMsgType(heartBeatMsgType);
+
+        if(msg.hasBeat()){
+            bb = Work.Heartbeat.newBuilder();
+            bb.setState(msg.getBeat().getState());
+            bb.setMsgType(heartBeatMsgType);
+        }
+
+        if(msg.hasLeader()){
+            eb = Election.LeaderStatus.newBuilder();
+            eb.setAction(msg.getLeader().getAction());
+            eb.setState(msg.getLeader().getState());
+            eb.setLeaderHost(msg.getLeader().getLeaderHost());
+            eb.setLeaderId(msg.getLeader().getLeaderId());
+            eb.setTerm(msg.getLeader().getTerm());
+        }
+
+        if(msg.hasVote()){
+            vb = Work.VoteMsg.newBuilder();
+            vb.setState(msg.getVote().getState());
+            vb.setTerm(msg.getVote().getTerm());
+            vb.setVtype(msg.getVote().getVtype());
+        }
+
+        if(msg.hasCommand()){
+            cb = Work.Command.newBuilder();
+            cb.setQuery(msg.getCommand().getQuery());
+            cb.setResponse(msg.getCommand().getResponse());
+        }
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
         wb.setHeader(hb);
-        wb.setBeat(bb);
-        wb.setSecret(123);
+
+        if(bb != null){
+            wb.setBeat(bb);
+        }else if(cb != null){
+            wb.setCommand(cb);
+        }else if(vb != null){
+            wb.setVote(vb);
+        } else if(eb != null){
+            wb.setLeader(eb);
+        }
+
+        wb.setSecret(msg.getSecret());
 
         return wb.build();
     }

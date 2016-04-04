@@ -27,9 +27,10 @@ public class TextMsg {
     public void handleTextMsg(Pipe.CommandMessage msg, Channel channel){
         System.out.println("Text Message");
 
+
         if(state != null){
             System.out.println("From client handler -- leader is :"+state);
-          //  LeaderId = state.getElectionMonitor().getLeaderStatus().getCurLeader();
+            //  LeaderId = state.getElectionMonitor().getLeaderStatus().getCurLeader();
 
             if(state.getElectionMonitor().getLeaderStatus().getCurLeader() == state.getConf().getNodeId()){
                 System.out.println("I am the Leader and ill handle client request");
@@ -40,22 +41,21 @@ public class TextMsg {
                 CommonUtils.forwardToAll(workMessage,state,false);
             }
 
-
-
         }
 
-        //System.out.println(msg.getMessage());
-        logger.info("Received Message from client : "+msg.getMessage());
-        //logger.info("image byte is "+String.valueOf(msg.getMessageBytes()));
-        System.out.println("Sending reply ......");
-        Common.Header.Builder hb = Common.Header.newBuilder();
-        hb.setNodeId(12);
-        hb.setTime(System.currentTimeMillis());
-        hb.setDestination(-1);
 
-        Pipe.CommandMessage.Builder rb = Pipe.CommandMessage.newBuilder();
-        rb.setHeader(hb);
-        rb.setMessage("Reply from server");
-        channel.writeAndFlush(rb.build());
+//        //System.out.println(msg.getMessage());
+//        logger.info("Received Message from client : "+msg.getMessage());
+//        //logger.info("image byte is "+String.valueOf(msg.getMessageBytes()));
+//        System.out.println("Sending reply ......");
+//        Common.Header.Builder hb = Common.Header.newBuilder();
+//        hb.setNodeId(12);
+//        hb.setTime(System.currentTimeMillis());
+//        hb.setDestination(-1);
+//
+//        Pipe.CommandMessage.Builder rb = Pipe.CommandMessage.newBuilder();
+//        rb.setHeader(hb);
+//        rb.setMessage("Reply from server");
+//        channel.writeAndFlush(rb.build());
     }
 }
