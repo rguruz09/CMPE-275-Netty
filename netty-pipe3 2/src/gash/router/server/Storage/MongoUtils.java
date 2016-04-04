@@ -10,6 +10,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.ParallelScanOptions;
 import com.mongodb.ServerAddress;
+import com.mongodb.util.ObjectSerializer;
 
 
 /**
@@ -58,32 +59,52 @@ public class MongoUtils {
         return true;
     }
 
-    public boolean addChunk(chunks chk){
+    public boolean addChunk(chunks chk, String fname){
 
         DBCollection chunks = db.getCollection("chunks");
 
-        BasicDBObject doc = new BasicDBObject("_id", chk.getID())
-                .append("parent_id", chk.getMetaID())
-                .append("seq_num", chk.getSeqNum())
-                .append("data", chk.getData())
-                .append("time",chk.getTime());
+        DBObject result = findResource(fname);
 
-        chunks.insert(doc);
+        if(result != null){
+            BasicDBObject doc = new BasicDBObject("_id", chk.getID())
+                    .append("parent_id", result.get("_id"))
+                    .append("seq_num", chk.getSeqNum())
+                    .append("data", chk.getData())
+                    .append("time",chk.getTime());
 
-        return true;
+            chunks.insert(doc);
+            return true;
+        }else {
+            return false;
+        }
     }
 
-    public boolean findResource(String str){
+    public DBObject findResource(String str){
 
         DBCollection meta = db.getCollection("metadata");
-
+        DBObject result = null;
         BasicDBObject whereQuery = new BasicDBObject();
         whereQuery.put("file_name", str );
         DBCursor cursor = meta.find(whereQuery);
         while(cursor.hasNext()) {
-            DBObject result = cursor.next();
+            result = cursor.next();
             System.out.println(cursor.next());
         }
-        return true;
+        return result;
+    }
+
+    public void getAllChunks(DBObject obj){
+        Object o = obj.get("_id");
+        if(obj != null){
+            DBCollection chunk = db.getCollection("chunks");
+            DBObject result = null;
+            BasicDBObject whereQuery = new BasicDBObject();
+            whereQuery.put("parent_id", o );
+            DBCursor cursor = chunk.find(whereQuery);
+            while(cursor.hasNext()) {
+                result = cursor.next();
+                System.out.println(cursor.next());
+            }
+        }
     }
 }

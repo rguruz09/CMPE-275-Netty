@@ -1,6 +1,7 @@
 package gash.router.server.workHandlers;
 
 import com.google.protobuf.ByteString;
+import com.mongodb.DBObject;
 import gash.router.client.MessageClient;
 import gash.router.server.Election.CommonUtils;
 import gash.router.server.ServerState;
@@ -59,17 +60,19 @@ public class WorkCmdMsg {
                     ch.setSeqNum(msg.getCommand().getQuery().getSequenceNo());
                     ch.setData(msg.getCommand().getQuery().getData().toByteArray());
 
-                    mongoUtils.addChunk(ch);
+                    mongoUtils.addChunk(ch,msg.getCommand().getQuery().getMetadata().getFname());
 
                 }
             }else if(msg.getCommand().getQuery().getAction() == Storage.Action.GET){
                 System.out.println("retrieve the data");
                 String fname = msg.getCommand().getQuery().getMetadata().getFname();
 
-                if(!mongoUtils.findResource(fname)){
+                DBObject result = mongoUtils.findResource(fname);
+                if(result == null){
                     System.out.println("Invalid file name");
                 } else {
                     System.out.println("File found");
+                    mongoUtils.getAllChunks(result);
 
                 }
             }
