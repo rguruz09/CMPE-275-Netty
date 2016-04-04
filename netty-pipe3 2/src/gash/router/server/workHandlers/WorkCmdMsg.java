@@ -1,7 +1,6 @@
 package gash.router.server.workHandlers;
 
 import com.google.protobuf.ByteString;
-import com.sun.tools.javac.code.Attribute;
 import gash.router.client.MessageClient;
 import gash.router.server.Election.CommonUtils;
 import gash.router.server.ServerState;
@@ -64,7 +63,15 @@ public class WorkCmdMsg {
 
                 }
             }else if(msg.getCommand().getQuery().getAction() == Storage.Action.GET){
-                System.out.println("retrive the data");
+                System.out.println("retrieve the data");
+                String fname = msg.getCommand().getQuery().getMetadata().getFname();
+
+                if(!mongoUtils.findResource(fname)){
+                    System.out.println("Invalid file name");
+                } else {
+                    System.out.println("File found");
+
+                }
             }
 
 

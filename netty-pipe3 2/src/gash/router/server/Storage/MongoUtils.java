@@ -11,6 +11,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.ParallelScanOptions;
 import com.mongodb.ServerAddress;
 
+
 /**
  * Created by Student on 4/4/16.
  */
@@ -52,6 +53,8 @@ public class MongoUtils {
                 .append("file_size",meta.getTotalSize())
                 .append("time",meta.getTime());
 
+        metadata.insert(doc);
+
         return true;
     }
 
@@ -65,6 +68,22 @@ public class MongoUtils {
                 .append("data", chk.getData())
                 .append("time",chk.getTime());
 
+        chunks.insert(doc);
+
+        return true;
+    }
+
+    public boolean findResource(String str){
+
+        DBCollection meta = db.getCollection("metadata");
+
+        BasicDBObject whereQuery = new BasicDBObject();
+        whereQuery.put("file_name", str );
+        DBCursor cursor = meta.find(whereQuery);
+        while(cursor.hasNext()) {
+            DBObject result = cursor.next();
+            System.out.println(cursor.next());
+        }
         return true;
     }
 }

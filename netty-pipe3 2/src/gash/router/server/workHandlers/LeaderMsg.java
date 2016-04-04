@@ -86,7 +86,7 @@ public class LeaderMsg {
         hb.setTime(System.currentTimeMillis());
         hb.setMaxHops(CommonUtils.MAX_HOPS);
 
-        ls.setLeaderHost(state.getElectionMonitor().getLeaderStatus().getLeaderHost());
+        ls.setLeaderHost(state.getConf().getSelfHost());
         ls.setLeaderId(state.getElectionMonitor().getLeaderStatus().getCurLeader());
         ls.setState(ldst);
         ls.setTerm(state.getElectionMonitor().getElectionStatus().getTerm());
