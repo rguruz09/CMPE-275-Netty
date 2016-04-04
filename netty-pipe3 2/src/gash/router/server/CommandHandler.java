@@ -78,9 +78,9 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 				ResponseMsg responseMsg = new ResponseMsg();
 				ResponseCommand responseCommand = new ResponseCommand(responseMsg);
 				responseCommand.handleRequest(msg,channel);
-			} else if(msg.hasErr()){
+			} else if(msg.hasErr()) {
 				System.out.println("Error...!!!");
-			} else {
+			}else {
 				System.out.println("Donno what you mean..");
 			}
 

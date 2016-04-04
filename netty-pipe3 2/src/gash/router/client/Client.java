@@ -60,12 +60,13 @@ public class Client implements CommListener {
      */
     public static void main(String[] args) {
         //System.out.println(args[1]);
-        String host = "127.0.0.1";
-        int port = 4568;
+       // String host = "127.0.0.1";
+       // int port = 4568;
         int ctr=3;
             try {
                 //MessageClient mc = new MessageClient("127.0.0.1",4568);
-                MessageClient mc = new MessageClient(host, port);
+            //    MessageClient mc = new MessageClient(host, port);
+                MessageClient mc = new MessageClient(args[0], Integer.parseInt(args[1]));
                 Client cl = new Client(mc);
                 //System.out.println("Message to send to server is : "+ args[2]);
                 // do stuff w/ the connection

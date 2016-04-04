@@ -1,9 +1,13 @@
 package gash.router.server.CommandHandlers;
 
+import gash.router.server.Election.CommonUtils;
+import gash.router.server.Election.ElectionMonitor;
+import gash.router.server.ServerState;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pipe.common.Common;
+import pipe.work.Work;
 import routing.Pipe;
 
 
@@ -12,10 +16,33 @@ import routing.Pipe;
  */
 public class TextMsg {
 
+    private ServerState state;
     protected static Logger logger = LoggerFactory.getLogger("cmd");
+    private int LeaderId;
+
+    public TextMsg(){
+        state = CommonUtils.state;
+    }
 
     public void handleTextMsg(Pipe.CommandMessage msg, Channel channel){
         System.out.println("Text Message");
+
+        if(state != null){
+            System.out.println("From client handler -- leader is :"+state);
+            LeaderId = state.getElectionMonitor().getLeaderStatus().getCurLeader();
+
+            if(LeaderId == state.getConf().getNodeId()){
+                System.out.println("I am the Leader and ill handle client request");
+
+            }else {
+                System.out.println("I am not the Leader and forward it to leader");
+                Work.WorkMessage workMessage = CommandsUtils.getWorkFromCommand(msg,state);
+                CommonUtils.forwardToAll(workMessage,state,false);
+            }
+
+
+
+        }
 
         //System.out.println(msg.getMessage());
         logger.info("Received Message from client : "+msg.getMessage());

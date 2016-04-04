@@ -15,6 +15,8 @@ import static pipe.work.Work.HbType.LEADERREQ;
 public class CommonUtils {
 
     public static final int MAX_HOPS = 1;
+    public static ServerState state;
+
 
     public static void getClusterNodes(ServerState state){
 

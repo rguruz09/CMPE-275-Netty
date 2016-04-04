@@ -114,8 +114,8 @@
 	</target>
 
 	<target name="client" depends="init">
-		<property name="host" value="127.0.0.1"/>
-		<property name="port" value="4568"/>
+		<property name="host" value="192.168.253.1"/>
+		<property name="port" value="4168"/>
 		<property name="msg" value="Hello server...."/>
 		<java fork="yes" classname="gash.router.client.Client">
 			<classpath refid="project.classpath" />

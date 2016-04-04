@@ -2,8 +2,10 @@
 option optimize_for = SPEED;
 option java_package = "pipe.work";
 
+
 import "common.proto";
 import "election.proto";
+import "storage.proto";
 
 message WorkState {
    required int32 enqueued = 1;
@@ -36,6 +38,11 @@ message Task {
     required int32 seq_id = 2;
 }
 
+message Command {
+   optional Query query = 1;
+   optional Response response = 2;
+}
+
 // These are messages to keep the network running (not to perform work)
 message WorkMessage {
    required Header header = 1;
@@ -59,6 +66,7 @@ message WorkMessage {
       WorkState state = 7;
       LeaderStatus leader = 8;
       VoteMsg vote = 9;
+      Command command = 10;
    }
 }
 
