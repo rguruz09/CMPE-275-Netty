@@ -30,6 +30,10 @@ public class MessageClient {
 	// track requests
 	private long curID = 0;
 
+	Header.Builder hb = Header.newBuilder();
+
+	Storage.Query.Builder qb = Storage.Query.newBuilder();
+
 	public MessageClient(String host, int port) {
 		init(host, port);
 	}
@@ -44,7 +48,7 @@ public class MessageClient {
 
 	public void ping() {
 		// construct the message to send
-		Header.Builder hb = Header.newBuilder();
+		//Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(999);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
@@ -87,17 +91,21 @@ public class MessageClient {
 		}
 	}
 
-	public void sendImage(byte[] image) {
+	public void sendImage(byte[] image,int seq, String clientId, String filename) {
 		// construct the message to send
-		Header.Builder hb = Header.newBuilder();
+		//Header.Builder hb = Header.newBuilder();
+		System.out.println("Inside send Image method of message client...");
 		hb.setNodeId(12);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
 
-		Storage.Query.Builder qb = Storage.Query.newBuilder();
+		//Storage.Query.Builder qb = Storage.Query.newBuilder();
 		qb.setAction(Storage.Action.STORE);
 		qb.setData(ByteString.copyFrom(image));
-
+		qb.setSequenceNo(seq);
+		qb.setKey(clientId);
+		//qb.setFilename(filename);
+		//qb.setData(image);
 		CommandMessage.Builder rb = CommandMessage.newBuilder();
 		rb.setHeader(hb);
 		//rb.setPing(true);
@@ -109,17 +117,24 @@ public class MessageClient {
 			e.printStackTrace();
 		}
 	}
-	public void sendFile(byte[] file) {
+	public void sendFile(byte[] file,int seq,String clientId, String filename) {
 		// construct the message to send
-		Header.Builder hb = Header.newBuilder();
+		//Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(12);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
 
+		//Storage.Query.Builder qb = Storage.Query.newBuilder();
+		qb.setAction(Storage.Action.STORE);
+		qb.setData(ByteString.copyFrom(file));
+		qb.setSequenceNo(seq);
+		qb.setKey(clientId);
+		//qb.setFilename(filename);
+
 		CommandMessage.Builder rb = CommandMessage.newBuilder();
 		rb.setHeader(hb);
 		//rb.setPing(true);
-		rb.setMessageBytes(ByteString.copyFrom(file));
+		rb.setQuery(qb);
 		//rb.setMessage(image.toString());
 
 		try {
@@ -127,6 +142,28 @@ public class MessageClient {
 			// using queue
 			CommConnection.getInstance().enqueue(rb.build());
 			//CommConnection.getInstance().enqueue("hello from client");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void getData(String id,String name){
+		//Header.Builder hb = Header.newBuilder();
+		hb.setNodeId(12);
+		hb.setTime(System.currentTimeMillis());
+		hb.setDestination(-1);
+
+		Storage.Response.Builder res = Storage.Response.newBuilder();
+		res.setAction(Storage.Action.GET);
+		//res.setFilename(filename);
+		//qb.setData(ByteString.copyFrom(image));
+
+		CommandMessage.Builder rb = CommandMessage.newBuilder();
+		rb.setHeader(hb);
+		rb.setResponse(res);
+
+		try {
+			CommConnection.getInstance().enqueue(rb.build());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

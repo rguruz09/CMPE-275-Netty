@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import pipe.storage.Storage;
 import routing.Pipe.CommandMessage;
 
 /**
@@ -72,7 +73,7 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
 		System.out.println("--> got incoming message");
-		System.out.println("Message is "+ msg.getMessage());
+		//System.out.println("Message is "+ msg.getMessage());
 		logger.info("Reply from server "+ msg.getMessage());
 		for (String id : listeners.keySet()) {
 			CommListener cl = listeners.get(id);
