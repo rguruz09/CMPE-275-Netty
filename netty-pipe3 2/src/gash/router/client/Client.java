@@ -114,7 +114,7 @@ public class Client implements CommListener {
                             System.out.println("Enter client ID..");
                             id= sc.nextLine();
                             sc.nextLine();
-                            System.out.println("Enter File Path which you want to save..");
+                            System.out.println("Enter File name.");
                             filename = sc.nextLine();
                             clientHealper.retrieveFileFromServer(id,filename);
                             break;

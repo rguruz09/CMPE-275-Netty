@@ -13,10 +13,13 @@
 
 		<property name="config.dir" location="${basedir}/resources" />
 		<property name="logging.jar" location="${basedir}/lib/slf4j-log4j12-1.6.1.jar" />
+		<property name="mongo.jar" location="${basedir}/lib/mongo-java-driver-2.14.2.jar" />
+
 
 		<path id="project.classpath">
 			<pathelement location="${build.dir}" />
 			<pathelement location="${logging.jar}" />
+			<pathelement location="${mongo.jar}" />
 			<fileset dir="${basedir}/lib">
 				<include name="*.jar" />
 			</fileset>

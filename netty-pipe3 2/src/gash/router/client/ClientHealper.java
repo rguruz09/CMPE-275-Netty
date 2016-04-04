@@ -57,7 +57,7 @@ public class ClientHealper {
     }
 
     public void retrieveFileFromServer(String id, String fname){
-        mc.getData(id,fname);
+        mc.getGenFile(id,fname);
         System.out.flush();
     }
 
@@ -90,7 +90,8 @@ public class ClientHealper {
 
         Storage.Query.Builder qb = Storage.Query.newBuilder();
         qb.setAction(action);
-        qb.setMetadata(mb);
+        if(mb != null)
+            qb.setMetadata(mb);
         qb.setSequenceNo(sq_num);
 
         return qb;

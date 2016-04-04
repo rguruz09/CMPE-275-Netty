@@ -108,6 +108,23 @@ public class MessageClient {
 		}
 	}
 
+	public void getGenFile(String id,String name){
+
+		Header.Builder hb = ClientHealper.getHeader(999,-1,4);
+		Storage.Metadata.Builder mb = Storage.Metadata.newBuilder();
+		mb.setFname(name);
+		mb.setUid(id);
+		mb.setSeqSize(1);
+
+		Storage.Query.Builder qb = ClientHealper.getQuery(0, Storage.Action.GET,mb);
+		CommandMessage.Builder cb = CommandMessage.newBuilder();
+		cb.setQuery(qb);
+		cb.setHeader(hb);
+
+		ClientHealper.sendServrReq(this, cb);
+
+	}
+
 	public void sendImage(byte[] image,int seq, String clientId, String filename) {
 
 		Header.Builder hb = Header.newBuilder();
@@ -167,7 +184,7 @@ public class MessageClient {
 
 	public void getData(String id,String name){
 		Header.Builder hb = Header.newBuilder();
-		hb.setNodeId(12);
+		hb.setNodeId(999);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
 
