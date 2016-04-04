@@ -1,5 +1,5 @@
 option optimize_for = SPEED;
-option java_package = "pipe.storage";
+option java_package = "storage";
 
 import "common.proto";
 
@@ -27,7 +27,7 @@ import "common.proto";
  * There are 4 types of operations which can be performed on data. They are 
  * analogous to CRUD operations in databases.
  */
-    enum Action {
+enum Action {
 	GET = 1;
 	STORE = 2; 
 	UPDATE = 3;
@@ -56,7 +56,7 @@ import "common.proto";
  */
 message Metadata {
 	required int32 seq_size = 19;
-	optional int32 size = 20;
+	optional int64 size = 20;
 	optional int64 time = 21;
 }
 
