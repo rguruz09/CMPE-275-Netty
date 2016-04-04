@@ -93,6 +93,9 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 				voteCommand.handleMessage(msg,channel);
 			} else if(msg.hasCommand()){
 				System.out.println("Its a command request from command sever");
+				WorkCmdMsg workCmdMsg = new WorkCmdMsg();
+				WorkCmdHandler workCmdHandler = new WorkCmdHandler(workCmdMsg,state);
+				workCmdHandler.handleMessage(msg,channel);
 
 			} else {
 				System.out.println("Else part");
