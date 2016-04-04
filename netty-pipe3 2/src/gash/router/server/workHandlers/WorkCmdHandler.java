@@ -13,6 +13,7 @@ public class WorkCmdHandler implements Command {
 
     public WorkCmdHandler(WorkCmdMsg workCmdMsg, ServerState state) {
         this.workCmdMsg = workCmdMsg;
+        this.state = state;
     }
 
     @Override
