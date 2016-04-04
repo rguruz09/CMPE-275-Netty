@@ -3,6 +3,7 @@ package gash.router.server.CommandHandlers;
 import gash.router.server.Election.CommonUtils;
 import gash.router.server.Election.ElectionMonitor;
 import gash.router.server.ServerState;
+import gash.router.server.edges.EdgeInfo;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,8 @@ public class TextMsg {
             }else {
                 System.out.println("I am not the Leader and forward it to leader");
                 Work.WorkMessage workMessage = CommandsUtils.getWorkFromCommand(msg,state);
-                CommonUtils.forwardToAll(workMessage,state,false,msg.getHeader().getNodeId());
+                sendToLeader(workMessage,state);
+                //CommonUtils.forwardToAll(workMessage,state,false,msg.getHeader().getNodeId());
             }
 
         }
@@ -57,5 +59,20 @@ public class TextMsg {
 //        rb.setHeader(hb);
 //        rb.setMessage("Reply from server");
 //        channel.writeAndFlush(rb.build());
+    }
+
+    public void sendToLeader(Work.WorkMessage workMessage, ServerState state){
+
+        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+            if (ei.isActive() && ei.getChannel() != null) {
+                ei.getChannel().writeAndFlush(workMessage);
+            }
+        }
+        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+            if (ei.isActive() && ei.getChannel() != null) {
+                ei.getChannel().writeAndFlush(workMessage);
+            }
+        }
+
     }
 }

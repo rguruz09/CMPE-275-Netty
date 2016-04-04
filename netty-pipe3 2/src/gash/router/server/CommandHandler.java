@@ -25,7 +25,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import pipe.common.Common;
 import pipe.common.Common.Failure;
-import pipe.storage.Storage;
+import storage.Storage;
 import routing.Pipe.CommandMessage;
 
 /**

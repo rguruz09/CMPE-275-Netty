@@ -1,7 +1,7 @@
 package gash.router.server.CommandHandlers;
 
 import io.netty.channel.Channel;
-import pipe.storage.Storage;
+import storage.Storage;
 import routing.Pipe;
 
 import org.slf4j.Logger;

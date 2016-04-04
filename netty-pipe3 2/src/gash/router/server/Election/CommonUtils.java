@@ -186,7 +186,6 @@ public class CommonUtils {
         hb.setTime(msg.getHeader().getTime());
         hb.setMaxHops(msg.getHeader().getMaxHops()-1);
 
-
         if(msg.hasBeat()){
             bb = Work.Heartbeat.newBuilder();
             bb.setState(msg.getBeat().getState());

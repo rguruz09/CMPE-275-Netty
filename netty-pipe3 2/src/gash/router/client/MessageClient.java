@@ -17,7 +17,7 @@ package gash.router.client;
 
 import com.google.protobuf.ByteString;
 import pipe.common.Common.Header;
-import pipe.storage.Storage;
+import storage.Storage;
 import routing.Pipe.CommandMessage;
 
 /**
