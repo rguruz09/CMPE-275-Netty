@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import pipe.storage.Storage;
+import storage.Storage;
 import routing.Pipe.CommandMessage;
 
 /**
