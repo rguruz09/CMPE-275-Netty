@@ -29,9 +29,9 @@ public class TextMsg {
 
         if(state != null){
             System.out.println("From client handler -- leader is :"+state);
-            LeaderId = state.getElectionMonitor().getLeaderStatus().getCurLeader();
+          //  LeaderId = state.getElectionMonitor().getLeaderStatus().getCurLeader();
 
-            if(LeaderId == state.getConf().getNodeId()){
+            if(state.getElectionMonitor().getLeaderStatus().getCurLeader() == state.getConf().getNodeId()){
                 System.out.println("I am the Leader and ill handle client request");
 
             }else {
