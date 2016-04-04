@@ -103,7 +103,7 @@ public class MessageClient {
 			CommandMessage.Builder cm = CommandMessage.newBuilder();
 			cm.setHeader(hb);
 			cm.setQuery(query);
-			ClientHealper.sendServrReq(this, cb);
+			ClientHealper.sendServrReq(this, cm);
 
 		}
 	}
