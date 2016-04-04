@@ -58,6 +58,9 @@ message Metadata {
 	required int32 seq_size = 19;
 	optional int64 size = 20;
 	optional int64 time = 21;
+	optional string fname = 22;
+	optional string uid = 23;
+	optional string filetype = 24;
 }
 
 

@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 /**
  * Created by Richa on 3/31/16.
  */
+
 public class Client implements CommListener {
     private MessageClient mc;
 
@@ -42,145 +43,91 @@ public class Client implements CommListener {
         this.mc.addListener(this);
     }
 
-
     @Override
     public String getListenerID() {
-
         return "demo";
     }
 
     @Override
     public void onMessage(CommandMessage msg) {
-
         System.out.println("Reply from Server " + msg);
     }
 
-    public static byte[][] chunkData(byte[] buffer, int chunksize) {
-
-
-        byte[][] ret = new byte[(int)Math.ceil(buffer.length / (double)chunksize)][chunksize];
-
-        int start = 0;
-
-        for(int i = 0; i < ret.length; i++) {
-            ret[i] = Arrays.copyOfRange(buffer,start, start + chunksize);
-            start += chunksize ;
-        }
-
-        return ret;
-    }
     /**
      * sample application (client) use of our messaging service
      *
      * @param args
      */
+
     public static void main(String[] args) {
-        //System.out.println(args[1]);
-       // String host = "127.0.0.1";
-       // int port = 4568;
+
             try {
-                //MessageClient mc = new MessageClient("127.0.0.1",4568);
-            //    MessageClient mc = new MessageClient(host, port);
+                if(args.length < 2){
+                    System.out.println("Invalid number of Arguments");
+                    System.out.println("Usage ->  client <Host> <Port>");
+                    System.exit(1);
+                }
                 MessageClient mc = new MessageClient(args[0], Integer.parseInt(args[1]));
                 Client cl = new Client(mc);
-                //System.out.println("Message to send to server is : "+ args[2]);
-                // do stuff w/ the connection
-                //System.out.println("Sending message to server....." );
-                //mc.sendMessage(args[2]);
                 Scanner sc = new Scanner(System.in);
-                //String ch = "y";
+                ClientHealper clientHealper = new ClientHealper(mc);
+
                 while(true){
                     System.out.println("Enter your choice : ");
-                    System.out.println("1. Send message to Server");
-                    System.out.println("2. Send Image to Server");
-                    System.out.println("3. Send File/Document to Server");
-                    System.out.println("4. Get Data from Server");
-                    //System.out.println("5. Get Image from Server");
-                    //System.out.println("6. Get File/Document from Server");
+                    System.out.println("1. Ping Server");
+                    System.out.println("2. Send message to Server");
+                    System.out.println("3. Save Image/File/Document/Video to Server");
+                    System.out.println("4. Retrieve Image/File/Document/Video from Server");
                     System.out.println("5. Exit");
 
                     int choice = sc.nextInt();
                     String id;
                     String filename;
-                    if (choice == 1) {
-                        System.out.println("Enter Message to send to server....");
-                        sc.nextLine();
-                        mc.sendMessage(sc.nextLine());
-                        System.out.println("Sending message to server.....");
-                        System.out.flush();
-                        System.out.println("Message sent successfully to server...");
-                        //Thread.sleep(10 * 1000);
-                    } else if (choice == 2) {
-                        System.out.println("Enter client ID..");
-                        id= sc.nextLine();
-                        sc.nextLine();
-                        System.out.println("Enter Filename to store..");
-                        filename = sc.nextLine();
-                        //sc.nextLine();
-                        FileInputStream fileInputStream=null;
-                        System.out.println("Sending Image to server.....");
-                        File file = new File("/Users/Rii/Documents/Cmpe275/lab1/fluffy/netty_mongo/test.jpg");
-                        int size = (int) file.length();
-                        byte[] buffer = new byte[size];
-                        fileInputStream = new FileInputStream(file);
-                        fileInputStream.read(buffer);
-                        //byte [] imageByte = buffer;
-                        fileInputStream.close();
-                        byte [][] chunks = chunkData(buffer,1024000);
-                        int i=0;
-                        while(i< chunks.length) {
-                            mc.sendImage(chunks[i],i+1,id,filename);
-                            i++;
-                        }
-                        System.out.println("Number of chunks is : "+i);
-                        System.out.flush();
-                        System.out.println("Image sent successfully to server...");
-                        //Thread.sleep(10 * 1000);
-                    } else if (choice == 3) {
-                        //System.out.println("Enter client ID..");
-                        //id= sc.nextInt();
-                        System.out.println("Enter client ID..");
-                        id= sc.nextLine();
-                        sc.nextLine();
-                        System.out.println("Enter Filename to store..");
-                        filename = sc.nextLine();
-                        FileInputStream fileInputStream=null;
-                        System.out.println("Sending File/Document to server.....");
-                        File file = new File("/Users/Rii/Documents/Cmpe275/lab1/fluffy/netty_mongo/test.jpg");
-                        int size = (int) file.length();
-                        byte[] buffer = new byte[size];
-                        fileInputStream = new FileInputStream(file);
-                        fileInputStream.read(buffer);
-                        byte [][] chunks = chunkData(buffer,1024000);
-                        int i=0;
-                        while(i< chunks.length) {
-                            mc.sendFile(chunks[i],i+1,id,filename);
-                            i++;
-                        }
-                        //mc.sendFile(buffer);
-                        System.out.flush();
-                        System.out.println("File sent successfully to server...");
-                    } else if (choice == 4) {
-                        System.out.println("Enter Client ID");
-                        id = sc.nextLine();
-                        sc.nextLine();
-                        System.out.println("Enter Filename");
-                        String name = sc.nextLine();
-                        mc.getData(id,name);
-                        System.out.flush();
-                    }else if(choice == 5){
-                        System.out.println("Terminating Connection...");
-                        CommConnection.getInstance().release();
-                        break;
+
+                    switch (choice){
+
+                        case 1:
+                            mc.ping();
+                            break;
+                        case 2:
+                            System.out.println("Enter Message to send to server....");
+                            sc.nextLine();
+                            mc.sendMessage(sc.nextLine());
+                            System.out.println("Sending message to server.....");
+                            System.out.flush();
+                            System.out.println("Message sent successfully to server...");
+                            break;
+                        case 3:
+                            System.out.println("Enter client ID..");
+                            id= sc.nextLine();
+                            sc.nextLine();
+                            System.out.println("Enter File Path which you want to save..");
+                            filename = sc.nextLine();
+                            File f = new File(filename);
+                            if(f.exists() && !f.isDirectory()) {
+                                clientHealper.sendFileToServer(f,id);
+                            }else {
+                                System.out.println("File Not exist.. try again");
+                            }
+                            break;
+                        case 4:
+                            System.out.println("Enter client ID..");
+                            id= sc.nextLine();
+                            sc.nextLine();
+                            System.out.println("Enter File Path which you want to save..");
+                            filename = sc.nextLine();
+                            clientHealper.retrieveFileFromServer(id,filename);
+                            break;
+                        case 5:
+                            System.out.println("Terminating Connection...");
+                            CommConnection.getInstance().release();
+                            System.exit(2);
                     }
-                    System.out.flush();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }finally {
-                //CommConnection.getInstance().release();
                 System.out.println("Client connection terminated from the server...");
             }
-
     }
 }

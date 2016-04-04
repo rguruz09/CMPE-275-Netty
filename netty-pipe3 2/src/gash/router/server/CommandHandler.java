@@ -54,6 +54,7 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 	 * @param msg
 	 */
 	public void handleMessage(CommandMessage msg, Channel channel) {
+
 		if (msg == null) {
 			// TODO add logging
 			System.out.println("ERROR: Unexpected content - " + msg);
@@ -63,68 +64,23 @@ public class CommandHandler extends SimpleChannelInboundHandler<CommandMessage> 
 		PrintUtil.printCommand(msg);
 
 		try {
-			// TODO How can you implement this without if-else statements?
 			if (msg.hasPing()) {
 				logger.info("ping from " + msg.getHeader().getNodeId());
 			} else if (msg.hasMessage()  ) {
-				//System.out.println(msg.getMessage());
-				logger.info("Received Message from client : "+msg.getMessage());
-				//logger.info("image byte is "+String.valueOf(msg.getMessageBytes()));
-				System.out.println("Sending reply ......");
-				Common.Header.Builder hb = Common.Header.newBuilder();
-				hb.setNodeId(12);
-				hb.setTime(System.currentTimeMillis());
-				hb.setDestination(-1);
-
-				CommandMessage.Builder rb = CommandMessage.newBuilder();
-				rb.setHeader(hb);
-				rb.setMessage("Message received by server successfully");
-				channel.writeAndFlush(rb.build());
+				TextMsg textMsg = new TextMsg();
+				TextCommand textCommand = new TextCommand(textMsg);
+				textCommand.handleRequest(msg,channel);
 			}
 			else if(msg.hasQuery()){
-				CommandMessage.Builder rb = CommandMessage.newBuilder();
-				Common.Header.Builder hb = Common.Header.newBuilder();
-				Storage.Response.Builder res = Storage.Response.newBuilder();
-				//Storage.Query.Builder qb = Storage.Query.newBuilder();
-				System.out.println("action is :  "+ msg.getQuery().getAction());
-				if(msg.getQuery().getAction()==Storage.Action.STORE) {
-					System.out.println("Server received an image from client....");
-
-					//Establish connection with MONGODB to store the received data qb.getData()
-					logger.info(String.valueOf(msg.getQuery().getData()));
-					//qb.setAction(Storage.Action.STORE);
-
-					hb.setNodeId(12);
-					hb.setTime(System.currentTimeMillis());
-					hb.setDestination(-1);
-
-					//CommandMessage.Builder rb = CommandMessage.newBuilder();
-					rb.setHeader(hb);
-					//rb.setQuery(qb.getData());
-					//qb.setData(qb.getData());
-					//rb.setQuery(qb);
-					rb.setMessage("Image received by server successfully");
-
-					//channel.writeAndFlush(rb.build());
-				}else if(msg.getQuery().getAction()==Storage.Action.GET){
-					//Establish connection with MONGODB to get the requested data based on client-ID
-
-					System.out.println("inside get");
-					//Common.Header.Builder hb = Common.Header.newBuilder();
-
-					hb.setNodeId(12);
-					hb.setTime(System.currentTimeMillis());
-					hb.setDestination(-1);
-					//res.setData(); Load this method with data retreived from MongoDB
-					rb.setHeader(hb);
-					//rb.setResponse(res);
-					rb.setMessage("get from server");
-
-				}
-				//Acknowledgement to the client of receipt of Data
-				channel.writeAndFlush(rb.build());
+				QueryMsg queryMsg = new QueryMsg();
+				QueryCommand queryCommand = new QueryCommand(queryMsg);
+				queryCommand.handleRequest(msg,channel);
 			}
-
+			else if(msg.hasResponse()){
+				ResponseMsg responseMsg = new ResponseMsg();
+				ResponseCommand responseCommand = new ResponseCommand(responseMsg);
+				responseCommand.handleRequest(msg,channel);
+			}
 		} catch (Exception e) {
 			// TODO add logging
 			Failure.Builder eb = Failure.newBuilder();

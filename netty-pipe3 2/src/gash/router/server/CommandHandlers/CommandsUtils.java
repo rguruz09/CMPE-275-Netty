@@ -2,6 +2,7 @@ package gash.router.server.CommandHandlers;
 
 import gash.router.server.Election.CommonUtils;
 import gash.router.server.ServerState;
+import gash.router.server.edges.EdgeInfo;
 import pipe.common.Common;
 import pipe.work.Work;
 import routing.Pipe;
@@ -35,5 +36,20 @@ public class CommandsUtils {
         wb.setSecret(123);
 
         return wb.build();
+    }
+
+    public static void sendToLeader(Work.WorkMessage workMessage, ServerState state){
+
+        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+            if (ei.isActive() && ei.getChannel() != null) {
+                ei.getChannel().writeAndFlush(workMessage);
+            }
+        }
+        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+            if (ei.isActive() && ei.getChannel() != null) {
+                ei.getChannel().writeAndFlush(workMessage);
+            }
+        }
+
     }
 }

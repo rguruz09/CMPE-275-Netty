@@ -17,6 +17,7 @@ package gash.router.client;
 
 import com.google.protobuf.ByteString;
 import pipe.common.Common.Header;
+import pipe.work.Work;
 import storage.Storage;
 import routing.Pipe.CommandMessage;
 
@@ -29,10 +30,6 @@ import routing.Pipe.CommandMessage;
 public class MessageClient {
 	// track requests
 	private long curID = 0;
-
-	Header.Builder hb = Header.newBuilder();
-
-	Storage.Query.Builder qb = Storage.Query.newBuilder();
 
 	public MessageClient(String host, int port) {
 		init(host, port);
@@ -48,7 +45,8 @@ public class MessageClient {
 
 	public void ping() {
 		// construct the message to send
-		//Header.Builder hb = Header.newBuilder();
+
+		Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(999);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
@@ -58,10 +56,6 @@ public class MessageClient {
 		rb.setPing(true);
 
 		try {
-			// direct no queue
-			// CommConnection.getInstance().write(rb.build());
-
-			// using queue
 			CommConnection.getInstance().enqueue(rb.build());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -69,7 +63,7 @@ public class MessageClient {
 	}
 
 	public void sendMessage(String message) {
-		// construct the message to send
+
 		Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(12);
 		hb.setTime(System.currentTimeMillis());
@@ -77,29 +71,52 @@ public class MessageClient {
 
 		CommandMessage.Builder rb = CommandMessage.newBuilder();
 		rb.setHeader(hb);
-		//rb.setPing(true);
 		rb.setMessage(message);
 
-
 		try {
-
-			// using queue
 			CommConnection.getInstance().enqueue(rb.build());
-			//CommConnection.getInstance().enqueue("hello from client");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	public void sendGenFile(byte[][] data, int size, String id, String fname, String ftype, long fsize){
+
+		Header.Builder hb = ClientHealper.getHeader(999,-1,4);
+		Storage.Metadata.Builder mb = ClientHealper.getMetadata(data.length,fsize,fname,ftype,id);
+
+		Storage.Query.Builder qb = ClientHealper.getQuery(0, Storage.Action.STORE,mb);
+		CommandMessage.Builder cb = CommandMessage.newBuilder();
+
+		cb.setQuery(qb);
+		cb.setHeader(hb);
+
+		// to send the metadata
+		ClientHealper.sendServrReq(this, cb);
+
+		for (int i = 0; i < data.length; i++) {
+
+			Storage.Query.Builder query = ClientHealper.getQuery(i+1, Storage.Action.STORE,mb);
+			query.setMetadata(mb);
+			query.setData(ByteString.copyFrom(data[i]));
+
+			CommandMessage.Builder cm = CommandMessage.newBuilder();
+			cm.setHeader(hb);
+			cm.setQuery(query);
+			ClientHealper.sendServrReq(this, cb);
+
+		}
+	}
+
 	public void sendImage(byte[] image,int seq, String clientId, String filename) {
-		// construct the message to send
-		//Header.Builder hb = Header.newBuilder();
+
+		Header.Builder hb = Header.newBuilder();
 		System.out.println("Inside send Image method of message client...");
-		hb.setNodeId(12);
+		hb.setNodeId(999);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
 
-		//Storage.Query.Builder qb = Storage.Query.newBuilder();
+		Storage.Query.Builder qb = Storage.Query.newBuilder();
 		qb.setAction(Storage.Action.STORE);
 		qb.setData(ByteString.copyFrom(image));
 		qb.setSequenceNo(seq);
@@ -117,14 +134,15 @@ public class MessageClient {
 			e.printStackTrace();
 		}
 	}
+
 	public void sendFile(byte[] file,int seq,String clientId, String filename) {
 		// construct the message to send
-		//Header.Builder hb = Header.newBuilder();
+		Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(12);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
 
-		//Storage.Query.Builder qb = Storage.Query.newBuilder();
+		Storage.Query.Builder qb = Storage.Query.newBuilder();
 		qb.setAction(Storage.Action.STORE);
 		qb.setData(ByteString.copyFrom(file));
 		qb.setSequenceNo(seq);
@@ -148,7 +166,7 @@ public class MessageClient {
 	}
 
 	public void getData(String id,String name){
-		//Header.Builder hb = Header.newBuilder();
+		Header.Builder hb = Header.newBuilder();
 		hb.setNodeId(12);
 		hb.setTime(System.currentTimeMillis());
 		hb.setDestination(-1);
