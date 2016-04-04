@@ -67,10 +67,6 @@ public class WorkCmdMsg {
                 System.out.println("retrive the data");
             }
 
-
-
-
-
         }else{
             System.out.println("Forwording..");
             if(state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())){

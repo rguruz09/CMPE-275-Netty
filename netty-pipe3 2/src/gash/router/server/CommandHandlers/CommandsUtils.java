@@ -40,16 +40,28 @@ public class CommandsUtils {
 
     public static void sendToLeader(Work.WorkMessage workMessage, ServerState state){
 
-        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-            if (ei.isActive() && ei.getChannel() != null) {
-                ei.getChannel().writeAndFlush(workMessage);
+        if(state.getEmon().getOutboundEdges().hasNode(workMessage.getHeader().getDestination()) &&
+                state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive()  &&
+                state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null){
+            state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
+        } else if(state.getEmon().getInboundEdges().hasNode(workMessage.getHeader().getDestination()) &&
+                state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive() &&
+                state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null){
+            state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
+        }else{
+            for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+                if (ei.isActive() && ei.getChannel() != null) {
+                    ei.getChannel().writeAndFlush(workMessage);
+                }
+            }
+            for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+                if (ei.isActive() && ei.getChannel() != null) {
+                    ei.getChannel().writeAndFlush(workMessage);
+                }
             }
         }
-        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-            if (ei.isActive() && ei.getChannel() != null) {
-                ei.getChannel().writeAndFlush(workMessage);
-            }
-        }
+
+
 
     }
 }
