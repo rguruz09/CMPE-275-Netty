@@ -29,71 +29,73 @@ public class WorkCmdMsg {
         MongoUtils mongoUtils = new MongoUtils();
         System.out.println("If you Leader Handle it else forward it to Leader");
         if(msg.getHeader().getDestination() == state.getConf().getNodeId()){
-            System.out.println("Process It");
 
-            if(msg.getCommand().getQuery().getAction() == Storage.Action.STORE){
+            if(msg.getCommand().hasQuery()){
+                System.out.println("Process It");
 
+                if(msg.getCommand().getQuery().getAction() == Storage.Action.STORE){
 
+                    // check if its a meta chunk or data chunk
+                    if(msg.getCommand().getQuery().getSequenceNo() == 0){
+                        System.out.println("Its a meta chunk");
+                        metadata md = new metadata();
+                        md.setFileName(msg.getCommand().getQuery().getMetadata().getFname());
+                        md.setFileType(msg.getCommand().getQuery().getMetadata().getFiletype());
+                        md.setTotalChunks(msg.getCommand().getQuery().getMetadata().getSeqSize());
+                        md.setTotalSize(msg.getCommand().getQuery().getMetadata().getSize());
+                        md.setUserID(msg.getCommand().getQuery().getMetadata().getUid());
+                        md.setTime(msg.getCommand().getQuery().getMetadata().getTime());
+                        String id = md.getUserID()+md.getFileName()+md.getFileType();
+                        md.setPrimaryID( String.valueOf(id.hashCode()) );
+                        if(mongoUtils.addMetaData(md)){
+                            SendResponse(state,msg,null,true);
+                        }else {
+                            SendResponse(state,msg,null,false);
+                        }
+                    } else {
+                        chunks ch = new chunks();
 
-                // check if its a meta chunk or data chunk
-                if(msg.getCommand().getQuery().getSequenceNo() == 0){
-                    System.out.println("Its a meta chunk");
-                    metadata md = new metadata();
-                    md.setFileName(msg.getCommand().getQuery().getMetadata().getFname());
-                    md.setFileType(msg.getCommand().getQuery().getMetadata().getFiletype());
-                    md.setTotalChunks(msg.getCommand().getQuery().getMetadata().getSeqSize());
-                    md.setTotalSize(msg.getCommand().getQuery().getMetadata().getSize());
-                    md.setUserID(msg.getCommand().getQuery().getMetadata().getUid());
-                    md.setTime(msg.getCommand().getQuery().getMetadata().getTime());
-                    String id = md.getUserID()+md.getFileName()+md.getFileType();
-                    md.setPrimaryID( String.valueOf(id.hashCode()) );
-                    if(mongoUtils.addMetaData(md)){
-                        SendResponse(state,msg,null,true);
-                    }else {
-                        SendResponse(state,msg,null,false);
+                        String metaid = msg.getCommand().getQuery().getMetadata().getUid() +
+                                msg.getCommand().getQuery().getMetadata().getFname() +
+                                msg.getCommand().getQuery().getMetadata().getFiletype();
+
+                        ch.setMetaID(String.valueOf(metaid.hashCode()));
+
+                        String id = msg.getCommand().getQuery().getSequenceNo()+
+                                msg.getCommand().getQuery().getMetadata().getUid() +
+                                msg.getCommand().getQuery().getMetadata().getFname() +
+                                msg.getCommand().getQuery().getMetadata().getFiletype();
+
+                        ch.setID(String.valueOf(id.hashCode()));
+
+                        ch.setTime(msg.getCommand().getQuery().getMetadata().getTime());
+                        ch.setSeqNum(msg.getCommand().getQuery().getSequenceNo());
+                        ch.setData(msg.getCommand().getQuery().getData().toByteArray());
+
+                        if(mongoUtils.addChunk(ch,msg.getCommand().getQuery().getMetadata().getFname())){
+                            SendResponse(state,msg,null,true);
+                        }else {
+                            //response err
+                            SendResponse(state,msg,null,false);
+                        }
                     }
-                } else {
-                    chunks ch = new chunks();
+                }else if(msg.getCommand().getQuery().getAction() == Storage.Action.GET){
+                    System.out.println("retrieve the data");
+                    String fname = msg.getCommand().getQuery().getMetadata().getFname();
 
-                    String metaid = msg.getCommand().getQuery().getMetadata().getUid() +
-                            msg.getCommand().getQuery().getMetadata().getFname() +
-                            msg.getCommand().getQuery().getMetadata().getFiletype();
-
-                    ch.setMetaID(String.valueOf(metaid.hashCode()));
-
-                    String id = msg.getCommand().getQuery().getSequenceNo()+
-                            msg.getCommand().getQuery().getMetadata().getUid() +
-                            msg.getCommand().getQuery().getMetadata().getFname() +
-                            msg.getCommand().getQuery().getMetadata().getFiletype();
-
-                    ch.setID(String.valueOf(id.hashCode()));
-
-                    ch.setTime(msg.getCommand().getQuery().getMetadata().getTime());
-                    ch.setSeqNum(msg.getCommand().getQuery().getSequenceNo());
-                    ch.setData(msg.getCommand().getQuery().getData().toByteArray());
-
-                    if(mongoUtils.addChunk(ch,msg.getCommand().getQuery().getMetadata().getFname())){
-                        SendResponse(state,msg,null,true);
-                    }else {
-                        //response err
-                        SendResponse(state,msg,null,false);
+                    DBObject result = mongoUtils.findResource(fname);
+                    if(result == null){
+                        System.out.println("Invalid file name");
+                    } else {
+                        System.out.println("File found");
+                        DBCursor cursor = mongoUtils.getAllChunks(result);
+                        buildResDate(state,msg,cursor);
                     }
-
                 }
-            }else if(msg.getCommand().getQuery().getAction() == Storage.Action.GET){
-                System.out.println("retrieve the data");
-                String fname = msg.getCommand().getQuery().getMetadata().getFname();
-
-                DBObject result = mongoUtils.findResource(fname);
-                if(result == null){
-                    System.out.println("Invalid file name");
-                } else {
-                    System.out.println("File found");
-                    DBCursor cursor = mongoUtils.getAllChunks(result);
-                    buildResDate(state,msg,cursor);
-                }
+            }else if(msg.getCommand().hasResponse()) {
+                Pipe.CommandMessage cm = CommandsUtils.buildCommandMsgFromWork(msg,state);
+                state.getCmdChannel().writeAndFlush(cm);
             }
-
         }else{
             System.out.println("Forwording..");
             if(state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())){
@@ -161,9 +163,20 @@ public class WorkCmdMsg {
 
             DBObject result = null;
             byte[] data;
+            int i = 1;
             while(cursor.hasNext()) {
                 result = cursor.next();
-//                data = result.get("data");
+                data = result.get("data").toString().getBytes();
+
+                Work.WorkMessage.Builder wor = Work.WorkMessage.newBuilder();
+                wor.setHeader(hb);
+
+                Storage.Response.Builder res = Storage.Response.newBuilder();
+                res.setSequenceNo(i++);
+                res.setSuccess(true);
+                res.setData(ByteString.copyFrom(data));
+
+                wor.setSecret(123);
             }
         }
     }

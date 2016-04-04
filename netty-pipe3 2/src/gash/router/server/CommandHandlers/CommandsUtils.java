@@ -61,4 +61,20 @@ public class CommandsUtils {
             }
         }
     }
+
+    public static Pipe.CommandMessage buildCommandMsgFromWork(Work.WorkMessage msg, ServerState state){
+
+        Pipe.CommandMessage.Builder cm = Pipe.CommandMessage.newBuilder();
+
+        Common.Header.Builder hb = Common.Header.newBuilder();
+        hb.setNodeId(state.getConf().getNodeId());
+        hb.setDestination(999);
+        hb.setMaxHops(0);
+        hb.setTime(System.currentTimeMillis());
+
+        cm.setHeader(hb);
+        cm.setResponse(msg.getCommand().getResponse());
+
+        return cm.build();
+    }
 }
