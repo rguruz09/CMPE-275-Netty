@@ -40,13 +40,13 @@ public class CommandsUtils {
 
     public static void sendToLeader(Work.WorkMessage workMessage, ServerState state){
 
-        if(state.getEmon().getOutboundEdges().hasNode(workMessage.getHeader().getDestination()) &&
-                state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive()  &&
-                state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null){
+        if( (state.getEmon().getOutboundEdges().hasNode(workMessage.getHeader().getDestination())) &&
+                ( state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive()  &&
+                (state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null))){
             state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
-        } else if(state.getEmon().getInboundEdges().hasNode(workMessage.getHeader().getDestination()) &&
-                state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive() &&
-                state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null){
+        } else if((state.getEmon().getInboundEdges().hasNode(workMessage.getHeader().getDestination())) &&
+                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive() &&
+                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null))){
             state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
         }else{
             for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
