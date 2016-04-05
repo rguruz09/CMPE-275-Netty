@@ -130,6 +130,10 @@ public class WorkCmdMsg {
         rb.setMetaData(msg.getCommand().getQuery().getMetadata());
         Work.Command.Builder cmd = Work.Command.newBuilder();
         cmd.setResponse(rb);
+        wb.setCommand(cmd);
+
+        CommandsUtils.sendToLeader(wb.build(),state);
+
     }
 
     public void buildResDate(ServerState state, Work.WorkMessage msg, DBCursor cursor){
@@ -177,6 +181,8 @@ public class WorkCmdMsg {
                 res.setData(ByteString.copyFrom(data));
 
                 wor.setSecret(123);
+
+                CommandsUtils.sendToLeader(wor.build(),state);
             }
         }
     }
