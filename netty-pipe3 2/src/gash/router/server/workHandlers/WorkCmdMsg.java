@@ -92,6 +92,23 @@ public class WorkCmdMsg {
                         buildResDate(state,msg,cursor);
                     }
                 }
+
+                System.out.println("Forwording..");
+                if(state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())){
+                    if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()){
+                        System.out.println("Forwording..found in Inbound list");
+                        state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel().writeAndFlush(msg);
+                    }
+                } else if(state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())){
+                    if(state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()){
+                        System.out.println("Forwording..found in outbound list");
+                        state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().writeAndFlush(msg);
+                    }
+                } else {
+                    System.out.println("Forwording to ALL.....");
+                    CommonUtils.forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+                }
+                
             }else if(msg.getCommand().hasResponse()) {
                 Pipe.CommandMessage cm = CommandsUtils.buildCommandMsgFromWork(msg,state);
                 state.getCmdChannel().writeAndFlush(cm);
