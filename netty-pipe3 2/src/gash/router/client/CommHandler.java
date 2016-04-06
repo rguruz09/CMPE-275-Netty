@@ -18,11 +18,13 @@ package gash.router.client;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import pipe.common.Common;
 import storage.Storage;
 import routing.Pipe.CommandMessage;
 
@@ -75,6 +77,7 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 		System.out.println("--> got incoming message");
 		//System.out.println("Message is "+ msg.getMessage());
 		logger.info("Reply from server "+ msg.getMessage());
+
 		for (String id : listeners.keySet()) {
 			CommListener cl = listeners.get(id);
 
@@ -82,6 +85,8 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 			// async processing of replies
 			cl.onMessage(msg);
 		}
+
+		handleResponse(ctx.channel(),msg);
 	}
 
 	@Override
@@ -93,6 +98,28 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		logger.error("Unexpected exception from channel.", cause);
 		ctx.close();
+	}
+
+	public void handleResponse(Channel channel, CommandMessage msg){
+
+		if (msg == null) {
+			// TODO add logging
+			System.out.println("ERROR: Unexpected content - " + msg);
+			return;
+		}
+
+		try {
+
+			if(msg.hasResponse()){
+				System.out.println("Response from command server..");
+
+
+			}
+		}catch (Exception e) {
+			// TODO add logging
+			System.out.println(e.getStackTrace());
+		}
+
 	}
 
 }
