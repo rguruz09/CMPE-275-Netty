@@ -30,64 +30,68 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
 
     public void handleVoteMsg(Work.WorkMessage msg, Channel channel) {
 
-        logger.info("Vote msg from " + msg.getHeader().getNodeId());
-        if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
-                msg.getVote().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()) {
 
-            forwardToAll(msg,state,false,msg.getHeader().getNodeId());
-            Work.WorkMessage wm = createVoteRespMsg(msg);
-            channel.writeAndFlush(wm);
-        } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
+        try {
+            logger.info("Vote msg from " + msg.getHeader().getNodeId());
+            if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
+                    msg.getVote().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()) {
 
-            // 1. CHeck if the response for me
-            if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
+                forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+                Work.WorkMessage wm = createVoteRespMsg(msg);
+                channel.writeAndFlush(wm);
+            } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
 
-                // If Im the candidate process the response else not
+                // 1. CHeck if the response for me
+                if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
 
-                //Check for redundent votes
-                if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
-                       ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) {
-                    if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
-                        state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
-                        // Check if i got majority
-                        if (state.getElectionMonitor().getElectionStatus().getVoteCt() >= state.getElectionMonitor().getElectionStatus().getQuorum()) {
-                            System.out.println("Majority votes received: I will be the new leader: Node " + msg.getHeader().getNodeId());
+                    // If Im the candidate process the response else not
 
-                            state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.LEADER);
-                            state.getElectionMonitor().getLeaderStatus().setLeaderHost(state.getConf().getSelfHost());
-                            state.getElectionMonitor().getLeaderStatus().setCurLeader(state.getConf().getNodeId());
-                            state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
+                    //Check for redundent votes
+                    if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
+                            ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) {
+                        if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
+                            state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
+                            // Check if i got majority
+                            if (state.getElectionMonitor().getElectionStatus().getVoteCt() >= state.getElectionMonitor().getElectionStatus().getQuorum()) {
+                                System.out.println("Majority votes received: I will be the new leader: Node " + msg.getHeader().getNodeId());
 
+                                state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.LEADER);
+                                state.getElectionMonitor().getLeaderStatus().setLeaderHost(state.getConf().getSelfHost());
+                                state.getElectionMonitor().getLeaderStatus().setCurLeader(state.getConf().getNodeId());
+                                state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
+
+                                if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
+                                    addFollower(state,msg.getHeader().getNodeId());
+                                }
+                                state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
+                                Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
+                                forwardToAll(wm,state,false,msg.getHeader().getNodeId());
+                            }
+                        }else if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.LEADER){
                             if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
                                 addFollower(state,msg.getHeader().getNodeId());
                             }
-                            state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
-                            Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
-                            forwardToAll(wm,state,false,msg.getHeader().getNodeId());
                         }
-                    }else if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.LEADER){
-                        if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
-                            addFollower(state,msg.getHeader().getNodeId());
-                        }
+                    } else {
+                        System.out.println("Duplicate votes");
                     }
                 } else {
-                    System.out.println("Duplicate votes");
-                }
-            } else {
-                // 2. If not for me send it to appropriate node.
-                System.out.println("Forwarding vote msg from "+msg.getHeader().getNodeId()+" to "+msg.getHeader().getDestination());
-                if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())) {
-                    Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
-                    c.writeAndFlush(msg);
-                } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())) {
-                    Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
-                    c.writeAndFlush(msg);
-                } else {
-                    forwardToAll(msg, state,false,msg.getHeader().getNodeId());
+                    // 2. If not for me send it to appropriate node.
+                    System.out.println("Forwarding vote msg from "+msg.getHeader().getNodeId()+" to "+msg.getHeader().getDestination());
+                    if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())) {
+                        Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
+                        c.writeAndFlush(msg);
+                    } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())) {
+                        Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
+                        c.writeAndFlush(msg);
+                    } else {
+                        forwardToAll(msg, state,false,msg.getHeader().getNodeId());
+                    }
                 }
             }
+        }catch (Exception e){
+            System.out.println("Exception from Vote MSg");
         }
-
     }
 
     public Work.WorkMessage createVoteRespMsg(Work.WorkMessage msg) {
