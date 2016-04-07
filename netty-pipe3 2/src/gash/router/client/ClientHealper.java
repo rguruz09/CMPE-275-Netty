@@ -20,6 +20,8 @@ public class ClientHealper {
         this.mc = mc;
     }
 
+
+    //Chunking the data before it is sent to store.
     public void sendFileToServer(File file, String id){
 
         try {
@@ -36,9 +38,13 @@ public class ClientHealper {
 //                mc.sendImage(chunks[i],i+1,id,file.getName());
 //                i++;
 //            }
-            mc.sendGenFile(chunks, size, id, file.getName(), file.getName().split("\\.")[1],file.getTotalSpace());
+            boolean success = mc.sendGenFile(chunks, size, id, file.getName(), file.getName().split("\\.")[1],file.getTotalSpace());
            // System.out.println("Number of chunks is : "+i);
             System.out.flush();
+            if(!success){
+                System.out.println("Resending the file");
+                sendFileToServer(file, id);
+            }
             System.out.println("Image sent successfully to server...");
         }catch (Exception e){
             System.out.println(e.getStackTrace());

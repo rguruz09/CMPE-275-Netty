@@ -153,12 +153,16 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 							b.group(new NioEventLoopGroup());
 							b.channel(NioSocketChannel.class);
 							b.handler(new WorkInit(state,false));
-							channel = b.connect(ei.getHost(), ei.getPort()).sync().channel();
-							ei.setChannel(channel);
-							ei.setActive(true);
-							logger.info("connected to node " + ei.getRef());
-							// TODO create a client to the node
-							logger.info("trying to connect to node " + ei.getRef());
+							try {
+								channel = b.connect(ei.getHost(), ei.getPort()).sync().channel();
+								ei.setChannel(channel);
+								ei.setActive(true);
+								logger.info("connected to node " + ei.getRef());
+								// TODO create a client to the node
+								logger.info("trying to connect to node " + ei.getRef());
+							}catch (Exception e){
+								System.out.println("Node "+ ei.getRef()" isn't up yet");
+							}
 						}
 					}
 				}

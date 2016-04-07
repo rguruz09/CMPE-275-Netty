@@ -80,7 +80,7 @@ public class MessageClient {
 		}
 	}
 
-	public void sendGenFile(byte[][] data, int size, String id, String fname, String ftype, long fsize){
+	public boolean sendGenFile(byte[][] data, int size, String id, String fname, String ftype, long fsize){
 
 		Header.Builder hb = ClientHealper.getHeader(999,-1,4);
 		Storage.Metadata.Builder mb = ClientHealper.getMetadata(data.length,fsize,fname,ftype,id);
@@ -93,8 +93,9 @@ public class MessageClient {
 
 		// to send the metadata
 		ClientHealper.sendServrReq(this, cb);
-
-		for (int i = 0; i < data.length; i++) {
+		int i=0;
+		//Sending all the chunks
+		for (i = 0; i < data.length; i++) {
 
 			Storage.Query.Builder query = ClientHealper.getQuery(i+1, Storage.Action.STORE,mb);
 			query.setMetadata(mb);
@@ -105,6 +106,14 @@ public class MessageClient {
 			cm.setQuery(query);
 			ClientHealper.sendServrReq(this, cm);
 
+		}
+		if(i>=data.length){
+			System.out.println("Image Sent Successfully");
+			return true;
+
+		}else{
+			System.out.println("Failed to send the image");
+			return false;
 		}
 	}
 
