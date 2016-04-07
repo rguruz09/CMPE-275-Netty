@@ -97,48 +97,61 @@ public class ElectionMonitor implements Runnable{
                 System.out.println("The current leader is NODE "+getLeaderStatus().getCurLeader());
                 if(electionStatus.getStatus() == ElectionStatus.NODE_STATUS.LEADER){
 
-                    updatefollowers();
+
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
                     forwardToAll(wm,state,true,-1);
+                    Thread.sleep(2000);
+
+                    if(!updatefollowers()){
+                        electionStatus.setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
+                        leaderStatus.setCurLeader(-1);
+                        leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERUNKNOWN);
+                    }
+
+//                    Iterator it = followers.entrySet().iterator();
+//                    while (it.hasNext()) {
+//                        Map.Entry pair = (Map.Entry)it.next();
+//                        FollowerInfo fi = (FollowerInfo) pair.getValue();
+//
+//                        it.remove(); // avoids a ConcurrentModificationException
+//                    }
+
+
+
+                    //wm = CreateGenericHBReqMsg(state,Work.HbType.)
+
                 }else {
                     System.out.println(" Check the last HB timer.. ");
 
                     if((System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
-                        System.out.println("No HB from leader.. ill be the candidate");
-
                         //Reset the Followers Hmap
                         Work.WorkMessage wb;
 
-                       // followers.clear();
-                        getClusterNodes(state);
+//                       // followers.clear();
+//                        getClusterNodes(state);
 
                         if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
                             //     Query for  Leader
                             wb =  createLeaderQueryMsg();
-                        } else {
+                        } else  {
                             // Election process
+                            System.out.println("No HB from leader.. ill be the candidate");
+                            if(electionStatus.getStatus() != ElectionStatus.NODE_STATUS.CANDIDATE){
+                                electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
+                                electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
+                                electionStatus.setTerm(electionStatus.getTerm()+1);
+                                leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                            }
                             System.out.println("Leader state is "+leaderStatus.getLeader_state());
-                            electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
-                            electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
-                            electionStatus.setTerm(electionStatus.getTerm()+1);
-                            leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
                             wb = createVoteReqMsg();
                         }
 
-                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
-                            if(ei.isActive() && ei.getChannel() != null){
-                                ei.getChannel().writeAndFlush(wb);
-                            }
-                        }
+                        sendMessageToEveryone(state,wb);
 
-                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
-                            if(ei.isActive() && ei.getChannel() != null){
-                                ei.getChannel().writeAndFlush(wb);
-                            }
-                        }
                     }
+                    Thread.sleep(2000);
                 }
-                Thread.sleep(1000);
+
             }
         }
         catch (Exception e){
@@ -190,8 +203,9 @@ public class ElectionMonitor implements Runnable{
         return wb.build();
     }
 
-    public void updatefollowers(){
+    public boolean updatefollowers(){
 
+        int numActive = 0;
         Iterator it = followers.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
@@ -201,9 +215,14 @@ public class ElectionMonitor implements Runnable{
                 fi.setActive(false);
             }else {
                 fi.setActive(true);
+                numActive++;
             }
             it.remove(); // avoids a ConcurrentModificationException
         }
+
+        if (numActive < electionStatus.getQuorum())
+            return false;
+        return true;
 
     }
 }

@@ -17,13 +17,13 @@ import static pipe.work.Work.HbType.LEADERREQ;
  */
 public class CommonUtils {
 
-    public static final int MAX_HOPS = 1;
+    public static final int MAX_HOPS = 3;
     public static ServerState state;
 
 
-    public static void getClusterNodes(ServerState state){
+    public static void sendMessageToEveryone(ServerState state, Work.WorkMessage wb){
 
-        Work.WorkMessage wb = CreateGenericHBReqMsg(state,Work.HbType.DISCOVERREQ);
+       // Work.WorkMessage wb = CreateGenericHBReqMsg(state,Work.HbType.DISCOVERREQ);
 
         for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
             if(ei.isActive() && ei.getChannel() != null){
@@ -239,7 +239,7 @@ public class CommonUtils {
         followerInfo.setActive(true);
         followerInfo.setLastHBResp(System.currentTimeMillis());
         followerInfo.setNodeId(nodeId);
-        followerInfo.setVoted(false);
+        followerInfo.setVoted(true);
         state.getElectionMonitor().addNewFollowers(nodeId, followerInfo);
         //state.getElectionMonitor().getFollowers().put(nodeId,followerInfo);
     }
