@@ -161,6 +161,8 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 								// TODO create a client to the node
 								logger.info("trying to connect to node " + ei.getRef());
 							}catch (Exception e){
+								ei.setChannel(null);
+								ei.setActive(false);
 								System.out.println("Node "+ ei.getRef()+" isn't up yet");
 							}
 						}
