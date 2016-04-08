@@ -54,7 +54,12 @@ import static gash.router.server.Election.CommonUtils.sendMessageToEveryone;
 
                     //Check for redundant votes
                     if ((!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
-                            ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted())) {
+                            ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) || true) {
+
+                        if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
+                            addFollower(state,msg.getHeader().getNodeId());
+                        }
+
              //       if (! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) {
                         if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
                             state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
@@ -68,9 +73,6 @@ import static gash.router.server.Election.CommonUtils.sendMessageToEveryone;
                                 state.getElectionMonitor().getLeaderStatus().setCurLeader(state.getConf().getNodeId());
                                 state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
 
-                                if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
-                                    addFollower(state,msg.getHeader().getNodeId());
-                                }
                                 Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
                                 sendMessageToEveryone(state,wm);
                                 //forwardToAll(wm,state,false,msg.getHeader().getNodeId());

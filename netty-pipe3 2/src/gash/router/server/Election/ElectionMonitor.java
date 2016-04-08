@@ -1,7 +1,6 @@
 package gash.router.server.Election;
 
 import gash.router.server.ServerState;
-import gash.router.server.edges.EdgeInfo;
 import pipe.common.Common;
 import pipe.election.Election;
 import pipe.work.Work;
@@ -23,6 +22,7 @@ public class ElectionMonitor implements Runnable{
     private ElectionStatus electionStatus;
     private LeaderStatus leaderStatus;
     private HashMap<Integer, FollowerInfo> followers;
+    private long ElectionStartTime;
 
     public ElectionMonitor(ServerState state) {
 
@@ -97,17 +97,26 @@ public class ElectionMonitor implements Runnable{
 
                     System.out.println("I'm the leader, Sending HB msg to my followers..");
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
-                    forwardToAll(wm,state,true,-1);
+                    sendMessageToEveryone(state,wm);
                     //Thread.sleep(2000);
 
                     if(!updatefollowers()){
                         electionStatus.setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
                         leaderStatus.setCurLeader(-1);
                         leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                        followers.clear();
                     }
-                    followers.clear();
 
                 }else {
+                    if((electionStatus.getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) &&
+                            (System.currentTimeMillis() - ElectionStartTime) > 5000){
+                        System.out.println("Split vote, no one has become the leader");
+                        electionStatus.setVoteCt(0);
+                        electionStatus.setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
+                        electionStatus.setTerm(electionStatus.getTerm());
+                        leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
+                        leaderStatus.setCurLeader(-1);
+                    }
                     System.out.println(" Check the last HB timer.. ");
 
                     if((System.currentTimeMillis() - lastHBReceived ) > state.getConf().getHeartbeatDt()){
@@ -119,6 +128,7 @@ public class ElectionMonitor implements Runnable{
                             wb =  createLeaderQueryMsg();
                         } else  {
                             // Election process
+                            ElectionStartTime = System.currentTimeMillis();
                             System.out.println("No HB from leader.. ill be the candidate");
                             if(electionStatus.getStatus() != ElectionStatus.NODE_STATUS.CANDIDATE){
                                 electionStatus.setVoteCt(0);
@@ -134,9 +144,9 @@ public class ElectionMonitor implements Runnable{
                         sendMessageToEveryone(state,wb);
 
                     }
-                    Thread.sleep(2000);
                 }
 
+                Thread.sleep(2000);
             }
         }
         catch (Exception e){
@@ -196,7 +206,7 @@ public class ElectionMonitor implements Runnable{
             Map.Entry pair = (Map.Entry)it.next();
             FollowerInfo fi = (FollowerInfo) pair.getValue();
             System.out.println("Follower nodes are "+fi.getNodeId());
-            if(System.currentTimeMillis() - fi.getLastHBResp() > 3){
+            if(System.currentTimeMillis() - fi.getLastHBResp() > 2000){
                 System.out.println("Node is inactive NODE "+fi.getNodeId());
                 fi.setActive(false);
                 fi.setVoted(false);
