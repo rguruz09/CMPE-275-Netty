@@ -15,6 +15,7 @@ import pipe.work.Work;
 
 import static gash.router.server.Election.CommonUtils.addFollower;
 import static gash.router.server.Election.CommonUtils.forwardToAll;
+import static gash.router.server.Election.CommonUtils.sendMessageToEveryone;
 
 /**
  * Created by vinay on 4/1/16.
@@ -34,9 +35,9 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
         try {
             logger.info("Vote msg from " + msg.getHeader().getNodeId());
             if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
-                    msg.getVote().getTerm() >= state.getElectionMonitor().getElectionStatus().getTerm()) {
+                    msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()) {
 
-                forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+               // forwardToAll(msg,state,false,msg.getHeader().getNodeId());
                 Work.WorkMessage wm = createVoteRespMsg(msg);
                 channel.writeAndFlush(wm);
             } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
@@ -47,8 +48,8 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                     // If Im the candidate process the response else not
 
                     //Check for redundent votes
-                    if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
-                            ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) {
+                    if ( true || (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
+                            ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted())) {
                         if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
                             state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
                             // Check if i got majority
@@ -65,7 +66,12 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                                 }
                                 state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
                                 Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
-                                forwardToAll(wm,state,false,msg.getHeader().getNodeId());
+                                sendMessageToEveryone(state,wm);
+                                //forwardToAll(wm,state,false,msg.getHeader().getNodeId());
+                            }else {
+                                if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
+                                    addFollower(state,msg.getHeader().getNodeId());
+                                }
                             }
                         }else if(state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.LEADER){
                             if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
@@ -77,16 +83,18 @@ import static gash.router.server.Election.CommonUtils.forwardToAll;
                     }
                 } else {
                     // 2. If not for me send it to appropriate node.
-                    System.out.println("Forwarding vote msg from "+msg.getHeader().getNodeId()+" to "+msg.getHeader().getDestination());
-                    if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())) {
-                        Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
-                        c.writeAndFlush(msg);
-                    } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())) {
-                        Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
-                        c.writeAndFlush(msg);
-                    } else {
-                        forwardToAll(msg, state,false,msg.getHeader().getNodeId());
-                    }
+//                    System.out.println("Forwarding vote msg from "+msg.getHeader().getNodeId()+" to "+msg.getHeader().getDestination());
+                    System.out.println("Dropping the vote resp.. its not for me");
+
+//                    if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())) {
+//                        Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
+//                        c.writeAndFlush(msg);
+//                    } else if (state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())) {
+//                        Channel c = state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel();
+//                        c.writeAndFlush(msg);
+//                    } else {
+//                        forwardToAll(msg, state,false,msg.getHeader().getNodeId());
+//                    }
                 }
             }
         }catch (Exception e){

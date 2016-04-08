@@ -89,8 +89,6 @@ public class ElectionMonitor implements Runnable{
             Thread.sleep(10000);
             //Thread.sleep(state.getConf().getHeartbeatDt());
 
-
-
             while (true){
 
                 //if leader, send the HB to its nodes
@@ -100,25 +98,14 @@ public class ElectionMonitor implements Runnable{
 
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
                     forwardToAll(wm,state,true,-1);
-                    Thread.sleep(2000);
+                    //Thread.sleep(2000);
 
                     if(!updatefollowers()){
                         electionStatus.setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
                         leaderStatus.setCurLeader(-1);
                         leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERUNKNOWN);
                     }
-
-//                    Iterator it = followers.entrySet().iterator();
-//                    while (it.hasNext()) {
-//                        Map.Entry pair = (Map.Entry)it.next();
-//                        FollowerInfo fi = (FollowerInfo) pair.getValue();
-//
-//                        it.remove(); // avoids a ConcurrentModificationException
-//                    }
-
-
-
-                    //wm = CreateGenericHBReqMsg(state,Work.HbType.)
+                    followers.clear();
 
                 }else {
                     System.out.println(" Check the last HB timer.. ");
@@ -127,9 +114,6 @@ public class ElectionMonitor implements Runnable{
                         //Reset the Followers Hmap
                         Work.WorkMessage wb;
 
-//                       // followers.clear();
-//                        getClusterNodes(state);
-
                         if(leaderStatus.getLeader_state() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
                             //     Query for  Leader
                             wb =  createLeaderQueryMsg();
@@ -137,6 +121,7 @@ public class ElectionMonitor implements Runnable{
                             // Election process
                             System.out.println("No HB from leader.. ill be the candidate");
                             if(electionStatus.getStatus() != ElectionStatus.NODE_STATUS.CANDIDATE){
+                                electionStatus.setVoteCt(0);
                                 electionStatus.setStatus(ElectionStatus.NODE_STATUS.CANDIDATE);
                                 electionStatus.setVoteCt(electionStatus.getVoteCt()+1);
                                 electionStatus.setTerm(electionStatus.getTerm()+1);
@@ -213,8 +198,10 @@ public class ElectionMonitor implements Runnable{
             System.out.println("Follower nodes are "+fi.getNodeId());
             if(System.currentTimeMillis() - fi.getLastHBResp() > 3){
                 fi.setActive(false);
+                fi.setVoted(false);
             }else {
                 fi.setActive(true);
+                //fi.setVoted();
                 numActive++;
             }
             it.remove(); // avoids a ConcurrentModificationException

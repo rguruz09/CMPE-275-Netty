@@ -17,7 +17,7 @@ import static pipe.work.Work.HbType.LEADERREQ;
  */
 public class CommonUtils {
 
-    public static final int MAX_HOPS = 3;
+    public static final int MAX_HOPS = 1;
     public static ServerState state;
 
 
@@ -26,16 +26,16 @@ public class CommonUtils {
        // Work.WorkMessage wb = CreateGenericHBReqMsg(state,Work.HbType.DISCOVERREQ);
 
         for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()){
-            if(ei.isActive() && ei.getChannel() != null){
+            if(ei.isActive() && ei.getChannel() != null ){
                 ei.getChannel().writeAndFlush(wb);
             }
         }
 
-        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
-            if(ei.isActive() && ei.getChannel() != null){
-                ei.getChannel().writeAndFlush(wb);
-            }
-        }
+//        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()){
+//            if(ei.isActive() && ei.getChannel() != null){
+//                ei.getChannel().writeAndFlush(wb);
+//            }
+//        }
     }
 
     public static  Work.WorkMessage CreateGenericHBReqMsg(ServerState state, Work.HbType type){

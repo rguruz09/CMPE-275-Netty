@@ -57,16 +57,16 @@ public class HeartBeatMsg {
                 // HB from Leader
                 if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ &&
                         msg.getHeader().getNodeId() != state.getConf().getNodeId()){
-                    System.out.println("LEADERREQ received from NODE "+msg.getHeader().getNodeId());
+                    System.out.println("Leader HB req received from NODE "+msg.getHeader().getNodeId());
                     state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
                     state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getHeader().getNodeId());
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
                     //state.getElectionMonitor().getLeaderStatus().setLeaderHost(ms);
                     Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.LEADERRES, msg.getHeader().getNodeId());
                     channel.writeAndFlush(wm);
-                    forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+                   // forwardToAll(msg,state,false,msg.getHeader().getNodeId());
                 }else if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERRES){
-                    System.out.println("LEADERRES received from NODE "+msg.getHeader().getNodeId());
+                    System.out.println("Follower HB Response received from NODE "+msg.getHeader().getNodeId());
                     if(msg.getHeader().getDestination() == state.getConf().getNodeId()) {
                         if (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())) {
                             addFollower(state, msg.getHeader().getNodeId());
@@ -74,7 +74,7 @@ public class HeartBeatMsg {
                         state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setLastHBResp(System.currentTimeMillis());
                         state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setActive(true);
                     }else {
-                        forwardToAll(msg, state,false,msg.getHeader().getNodeId());
+                      //  forwardToAll(msg, state,false,msg.getHeader().getNodeId());
                     }
                 }
                 //If it's a DISCOVER msg
@@ -86,7 +86,7 @@ public class HeartBeatMsg {
                     System.out.println("DISCOVERREQ received from NODE "+msg.getHeader().getNodeId());
                     Work.WorkMessage wm = CreateGenericHBResMsg(state,Work.HbType.DISCOVERRES, msg.getHeader().getNodeId());
                     channel.writeAndFlush(wm);
-                    forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+                  //  forwardToAll(msg,state,false,msg.getHeader().getNodeId());
                 }else if(msg.getBeat().getMsgType().getType() == Work.HbType.DISCOVERRES) {
                     System.out.println("DISCOVERRES received from NODE "+msg.getHeader().getNodeId());
                     if(msg.getHeader().getDestination() == state.getConf().getNodeId()){
@@ -94,7 +94,7 @@ public class HeartBeatMsg {
                             addFollower(state,msg.getHeader().getNodeId());
                         }
                     }else {
-                        forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+                      //  forwardToAll(msg,state,false,msg.getHeader().getNodeId());
                     }
                 }
             }

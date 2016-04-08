@@ -40,7 +40,7 @@ public class LeaderMsg {
                     channel.writeAndFlush(wm);
 
                 } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
-                    System.out.println("Received leader response");
+                    System.out.println("Received leader response from "+msg.getHeader().getNodeId());
 
                     if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
                             msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
@@ -59,21 +59,25 @@ public class LeaderMsg {
                         state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
                         state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
                         Work.WorkMessage vm = createNotifyMsg(msg.getLeader().getTerm(),msg.getLeader().getLeaderId());
-                        CommonUtils.forwardToAll(vm,state,false,msg.getHeader().getNodeId());
+                       // CommonUtils.forwardToAll(vm,state,false,msg.getHeader().getNodeId());
+                        if(state.getEmon().getOutboundEdges().hasNode(msg.getLeader().getLeaderId()) &&
+                                (state.getEmon().getOutboundEdges().getNode(msg.getLeader().getLeaderId()).isActive())){
+                            state.getEmon().getOutboundEdges().getNode(msg.getLeader().getLeaderId()).getChannel().writeAndFlush(vm);
+                        }
                     }
                     // if its a broadcast msg fwd it to all
-                    if(msg.getHeader().getDestination() == -1){
-                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-                            if (ei.isActive() && ei.getChannel() != null) {
-                                ei.getChannel().writeAndFlush(msg);
-                            }
-                        }
-                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-                            if (ei.isActive() && ei.getChannel() != null) {
-                                ei.getChannel().writeAndFlush(msg);
-                            }
-                        }
-                    }
+//                    if(msg.getHeader().getDestination() == -1){
+//                        for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+//                            if (ei.isActive() && ei.getChannel() != null) {
+//                                ei.getChannel().writeAndFlush(msg);
+//                            }
+//                        }
+//                        for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+//                            if (ei.isActive() && ei.getChannel() != null) {
+//                                ei.getChannel().writeAndFlush(msg);
+//                            }
+//                        }
+//                    }
                 }
             }catch (Exception e){
                 System.out.println("Exception from Leader");
