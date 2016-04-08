@@ -26,8 +26,8 @@ public class LeaderMsg {
 
 
     public void handleLeaderMsg(Work.WorkMessage msg, Channel channel) {
-        logger.info("Leadermsg from " + msg.getHeader().getNodeId());
-        System.out.println("In HandleLeaderMsg");
+       // logger.info("Leadermsg from " + msg.getHeader().getNodeId());
+        //System.out.println("In HandleLeaderMsg");
 
         if(false){
             // if im the sender, dont care
@@ -35,23 +35,23 @@ public class LeaderMsg {
 
             try {
                 if (msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.WHOISTHELEADER) {
-                    System.out.println("Received leader request: Sending ");
+                    System.out.println("WHOISTHELEADER msg received");
                     Work.WorkMessage wm = createLeaderRespMsg(msg.getHeader().getNodeId(), state.getElectionMonitor().getLeaderStatus().getLeader_state());
                     channel.writeAndFlush(wm);
 
                 } else if(msg.getLeader().getAction() == Election.LeaderStatus.LeaderQuery.THELEADERIS){
-                    System.out.println("Received leader response from "+msg.getHeader().getNodeId());
+                    //System.out.println("Received leader response from "+msg.getHeader().getNodeId());
 
                     if(msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERDEAD ||
                             msg.getLeader().getState() == Election.LeaderStatus.LeaderState.LEADERUNKNOWN){
-                        System.out.println("Response: Leader Unknown");
+                        System.out.println("THELEADERIS not known :( :(");
                         state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
                         //  state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
                         //   state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());
                         state.getElectionMonitor().getElectionStatus().setTerm(msg.getLeader().getTerm());
                     }else {
-                        System.out.println("Response: New Leader is found!!");
-                        System.out.println("NEW LEADER IS "+msg.getLeader().getLeaderId());
+                       // System.out.println("Response: New Leader is found!!");
+                        System.out.println("THELEADERIS node "+msg.getLeader().getLeaderId());
                         state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);
                         state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getLeader().getLeaderId());
                         state.getElectionMonitor().getLeaderStatus().setLeaderHost(msg.getLeader().getLeaderHost());

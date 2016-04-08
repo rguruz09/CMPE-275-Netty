@@ -161,11 +161,11 @@ public class CommonUtils {
                         ei.getChannel().writeAndFlush(msg1);
                 }
             }
-            for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-                if (ei.isActive() && ei.getChannel() != null &&  ( all || (ei.getRef() != inb) )) {
-                    ei.getChannel().writeAndFlush(msg1);
-                }
-            }
+//            for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+//                if (ei.isActive() && ei.getChannel() != null &&  ( all || (ei.getRef() != inb) )) {
+//                    ei.getChannel().writeAndFlush(msg1);
+//                }
+//            }
         }else {
             System.out.println("Message expires");
         }

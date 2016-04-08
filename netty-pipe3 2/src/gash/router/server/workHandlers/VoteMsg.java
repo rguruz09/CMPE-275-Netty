@@ -33,28 +33,35 @@ import static gash.router.server.Election.CommonUtils.sendMessageToEveryone;
 
 
         try {
-            logger.info("Vote msg from " + msg.getHeader().getNodeId());
-            if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ &&
-                    msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()) {
+            //logger.info("Vote msg from " + msg.getHeader().getNodeId());
+            if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTEREQ){
+                System.out.println("VOTEREQ received from "+msg.getHeader().getNodeId());
+                if(msg.getVote().getTerm() > state.getElectionMonitor().getElectionStatus().getTerm()) {
 
-               // forwardToAll(msg,state,false,msg.getHeader().getNodeId());
-                Work.WorkMessage wm = createVoteRespMsg(msg);
-                channel.writeAndFlush(wm);
+                    // forwardToAll(msg,state,false,msg.getHeader().getNodeId());
+                    Work.WorkMessage wm = createVoteRespMsg(msg);
+                    channel.writeAndFlush(wm);
+                }else{
+                    System.out.println("Term is greater, not voting for this candidate NODE "+msg.getHeader().getNodeId());
+                }
             } else if (msg.getVote().getVtype() == Work.VoteMsg.VoteMsgType.VOTERES) {
 
                 // 1. CHeck if the response for me
                 if (msg.getHeader().getDestination() == state.getConf().getNodeId()) {
+                    System.out.println("VOTERES received from NODE "+msg.getHeader().getNodeId()+"and it is for me");
 
                     // If Im the candidate process the response else not
 
-                    //Check for redundent votes
-                    if ( true || (!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
+                    //Check for redundant votes
+                    if ((!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId()) ||
                             ! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted())) {
+             //       if (! state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).isVoted()) {
                         if (state.getElectionMonitor().getElectionStatus().getStatus() == ElectionStatus.NODE_STATUS.CANDIDATE) {
                             state.getElectionMonitor().getElectionStatus().setVoteCt(state.getElectionMonitor().getElectionStatus().getVoteCt() + 1);
+                            state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
                             // Check if i got majority
                             if (state.getElectionMonitor().getElectionStatus().getVoteCt() >= state.getElectionMonitor().getElectionStatus().getQuorum()) {
-                                System.out.println("Majority votes received: I will be the new leader: Node " + msg.getHeader().getNodeId());
+                                System.out.println("Majority votes received: I will be the new leader: Node " +  state.getConf().getNodeId());
 
                                 state.getElectionMonitor().getElectionStatus().setStatus(ElectionStatus.NODE_STATUS.LEADER);
                                 state.getElectionMonitor().getLeaderStatus().setLeaderHost(state.getConf().getSelfHost());
@@ -64,7 +71,6 @@ import static gash.router.server.Election.CommonUtils.sendMessageToEveryone;
                                 if(!state.getElectionMonitor().getFollowers().containsKey(msg.getHeader().getNodeId())){
                                     addFollower(state,msg.getHeader().getNodeId());
                                 }
-                                state.getElectionMonitor().getFollowers().get(msg.getHeader().getNodeId()).setVoted(true);
                                 Work.WorkMessage wm = LeaderMsg.createLeaderRespMsg(-1,Election.LeaderStatus.LeaderState.LEADERALIVE);
                                 sendMessageToEveryone(state,wm);
                                 //forwardToAll(wm,state,false,msg.getHeader().getNodeId());
@@ -79,12 +85,12 @@ import static gash.router.server.Election.CommonUtils.sendMessageToEveryone;
                             }
                         }
                     } else {
-                        System.out.println("Duplicate votes");
+                        System.out.println("Duplicate vote..");
                     }
                 } else {
                     // 2. If not for me send it to appropriate node.
 //                    System.out.println("Forwarding vote msg from "+msg.getHeader().getNodeId()+" to "+msg.getHeader().getDestination());
-                    System.out.println("Dropping the vote resp.. its not for me");
+                    System.out.println("Dropping the VOTERES. its not for me");
 
 //                    if (state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())) {
 //                        Channel c = state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel();

@@ -82,12 +82,12 @@ public class WorkHandler extends SimpleChannelInboundHandler<WorkMessage> {
 				StateCommand stateCommand = new StateCommand(stateMsg);
 				stateCommand.handleMessage(msg,channel);
 			} else if(msg.hasLeader()){
-				System.out.println("Leader Query Request");
+				//System.out.println("Leader Query Request");
 				LeaderMsg leaderMsg = new LeaderMsg(state);
 				LeaderCommand leaderCommand = new LeaderCommand(leaderMsg);
 				leaderCommand.handleMessage(msg, channel);
 			} else if (msg.hasVote()){
-				System.out.println("Its a Vote message");
+				//System.out.println("Its a Vote message");
 				VoteMsg voteMsg = new VoteMsg(state);
 				VoteCommand voteCommand = new VoteCommand(voteMsg);
 				voteCommand.handleMessage(msg,channel);

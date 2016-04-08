@@ -51,13 +51,13 @@ public class HeartBeatMsg {
                         state.getEmon().getInboundEdges().getNode((msg.getHeader().getNodeId())).setActive(true);
                     }
                 }
-                //If it's a LEADER msg
+                //If it's a HB msg from leader
             }else if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ ||
                     msg.getBeat().getMsgType().getType() == Work.HbType.LEADERRES){
                 // HB from Leader
                 if(msg.getBeat().getMsgType().getType() == Work.HbType.LEADERREQ &&
                         msg.getHeader().getNodeId() != state.getConf().getNodeId()){
-                    System.out.println("Leader HB req received from NODE "+msg.getHeader().getNodeId());
+                    System.out.println("HB req received from NODE "+msg.getHeader().getNodeId());
                     state.getElectionMonitor().setLastHBReceived(System.currentTimeMillis());
                     state.getElectionMonitor().getLeaderStatus().setCurLeader(msg.getHeader().getNodeId());
                     state.getElectionMonitor().getLeaderStatus().setLeader_state(Election.LeaderStatus.LeaderState.LEADERALIVE);

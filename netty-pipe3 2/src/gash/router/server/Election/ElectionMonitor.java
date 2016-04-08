@@ -95,7 +95,7 @@ public class ElectionMonitor implements Runnable{
                 System.out.println("The current leader is NODE "+getLeaderStatus().getCurLeader());
                 if(electionStatus.getStatus() == ElectionStatus.NODE_STATUS.LEADER){
 
-
+                    System.out.println("I'm the leader, Sending HB msg to my followers..");
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
                     forwardToAll(wm,state,true,-1);
                     //Thread.sleep(2000);
@@ -103,7 +103,7 @@ public class ElectionMonitor implements Runnable{
                     if(!updatefollowers()){
                         electionStatus.setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);
                         leaderStatus.setCurLeader(-1);
-                        leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERUNKNOWN);
+                        leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
                     }
                     followers.clear();
 
@@ -127,7 +127,7 @@ public class ElectionMonitor implements Runnable{
                                 electionStatus.setTerm(electionStatus.getTerm()+1);
                                 leaderStatus.setLeader_state(Election.LeaderStatus.LeaderState.LEADERDEAD);
                             }
-                            System.out.println("Leader state is "+leaderStatus.getLeader_state());
+                            //System.out.println("Leader state is "+leaderStatus.getLeader_state());
                             wb = createVoteReqMsg();
                         }
 
@@ -197,9 +197,11 @@ public class ElectionMonitor implements Runnable{
             FollowerInfo fi = (FollowerInfo) pair.getValue();
             System.out.println("Follower nodes are "+fi.getNodeId());
             if(System.currentTimeMillis() - fi.getLastHBResp() > 3){
+                System.out.println("Node is inactive NODE "+fi.getNodeId());
                 fi.setActive(false);
                 fi.setVoted(false);
             }else {
+                System.out.println("Node is active NODE "+fi.getNodeId());
                 fi.setActive(true);
                 //fi.setVoted();
                 numActive++;
