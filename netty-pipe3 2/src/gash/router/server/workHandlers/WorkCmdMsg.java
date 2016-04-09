@@ -12,11 +12,12 @@ import gash.router.server.Storage.MongoUtils;
 import gash.router.server.Storage.chunks;
 import gash.router.server.Storage.metadata;
 import gash.router.server.edges.EdgeInfo;
+import io.netty.channel.Channel;
+import io.netty.util.internal.SystemPropertyUtil;
 import pipe.common.Common;
 import pipe.work.Work;
 import routing.Pipe;
 import storage.Storage;
-
 import java.util.Arrays;
 
 /**
@@ -24,7 +25,7 @@ import java.util.Arrays;
  */
 public class WorkCmdMsg {
 
-    public void handleWorkCmdMsg(Work.WorkMessage msg, ServerState state){
+    public void handleWorkCmdMsg(Work.WorkMessage msg, ServerState state, Channel channel){
 
         MongoUtils mongoUtils = new MongoUtils();
         System.out.println("If you Leader Handle it else forward it to Leader");
@@ -48,9 +49,11 @@ public class WorkCmdMsg {
                         String id = md.getUserID()+md.getFileName()+md.getFileType();
                         md.setPrimaryID( String.valueOf(id.hashCode()) );
                         if(mongoUtils.addMetaData(md)){
-                            SendResponse(state,msg,null,true);
+                            System.out.println("Metadata chunk is added to DATABASE..");
+                           // SendResponse(state,msg,null,true);
                         }else {
-                            SendResponse(state,msg,null,false);
+                            System.out.println("Metadata chunk couldnt be added to  DATABASE..");
+                            //SendResponse(state,msg,null,false);
                         }
                     } else {
                         chunks ch = new chunks();
@@ -73,10 +76,10 @@ public class WorkCmdMsg {
                         ch.setData(msg.getCommand().getQuery().getData().toByteArray());
 
                         if(mongoUtils.addChunk(ch,msg.getCommand().getQuery().getMetadata().getFname())){
-                            SendResponse(state,msg,null,true);
+                            SendResponse(state,msg,null,true, channel);
                         }else {
                             //response err
-                            SendResponse(state,msg,null,false);
+                            SendResponse(state,msg,null,false, channel);
                         }
                     }
                 }else if(msg.getCommand().getQuery().getAction() == Storage.Action.GET){
@@ -89,51 +92,28 @@ public class WorkCmdMsg {
                     } else {
                         System.out.println("File found");
                         DBCursor cursor = mongoUtils.getAllChunks(result);
-                        buildResDate(state,msg,cursor);
+                        buildResDate(state,msg,cursor, channel);
                     }
                 }
-
-//                System.out.println("Forwording..");
-//                if(state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())){
-//                    if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()){
-//                        System.out.println("Forwording..found in Inbound list");
-//                        state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel().writeAndFlush(msg);
-//                    }
-//                } else if(state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())){
-//                    if(state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()){
-//                        System.out.println("Forwording..found in outbound list");
-//                        state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().writeAndFlush(msg);
-//                    }
-//                } else {
-//                    System.out.println("Forwording to ALL.....");
-//                    CommonUtils.forwardToAll(msg,state,false,msg.getHeader().getNodeId());
-//                }
-
             }else if(msg.getCommand().hasResponse()) {
+                System.out.println("Sending response to Command Server from Leade***********************************************************************************************************************************************************************************************************r"+ state.getCmdChannel());
                 Pipe.CommandMessage cm = CommandsUtils.buildCommandMsgFromWork(msg,state);
-                state.getCmdChannel().writeAndFlush(cm);
+               // state.getCmdChannel().writeAndFlush(cm);
+                channel.writeAndFlush(cm);
             }
         }else{
-            System.out.println("Forwording..");
-            if(state.getEmon().getInboundEdges().hasNode(msg.getHeader().getDestination())){
-                if(state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()){
-                    System.out.println("Forwording..found in Inbound list");
-                    state.getEmon().getInboundEdges().getNode(msg.getHeader().getDestination()).getChannel().writeAndFlush(msg);
-                }
-            } else if(state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())){
-                if(state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()){
+
+            if(state.getEmon().getOutboundEdges().hasNode(msg.getHeader().getDestination())) {
+                if (state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().isActive()) {
                     System.out.println("Forwording..found in outbound list");
                     state.getEmon().getOutboundEdges().getNode(msg.getHeader().getDestination()).getChannel().writeAndFlush(msg);
                 }
-            } else {
-                System.out.println("Forwording to ALL.....");
-                CommonUtils.forwardToAll(msg,state,false,msg.getHeader().getNodeId());
             }
         }
 
     }
 
-    public void SendResponse(ServerState state, Work.WorkMessage msg, byte [] data, boolean sts){
+    public void SendResponse(ServerState state, Work.WorkMessage msg, byte [] data, boolean sts, Channel channel){
         Common.Header.Builder Hb = ClientHealper.getHeader(state.getConf().getNodeId(), msg.getHeader().getNodeId(), CommonUtils.MAX_HOPS);
 
         Work.WorkMessage.Builder wb = Work.WorkMessage.newBuilder();
@@ -149,17 +129,17 @@ public class WorkCmdMsg {
         cmd.setResponse(rb);
         wb.setCommand(cmd);
 
-        CommandsUtils.sendToLeader(wb.build(),state);
+        CommandsUtils.sendToLeader(wb.build(),state, channel);
 
     }
 
-    public void buildResDate(ServerState state, Work.WorkMessage msg, DBCursor cursor){
+    public void buildResDate(ServerState state, Work.WorkMessage msg, DBCursor cursor, Channel channel){
 
         if(!cursor.hasNext()){
-            SendResponse(state,msg,null,false);
+            SendResponse(state,msg,null,false, channel);
         }else {
 
-            Common.Header.Builder hb = ClientHealper.getHeader(state.getConf().getNodeId(),msg.getHeader().getDestination(),CommonUtils.MAX_HOPS);
+            Common.Header.Builder hb = ClientHealper.getHeader(state.getConf().getNodeId(),msg.getHeader().getNodeId(),CommonUtils.MAX_HOPS);
 
             Storage.Metadata.Builder mb = ClientHealper.getMetadata(cursor.size(),1024,msg.getCommand().getQuery().getMetadata().getFname(),
                     msg.getCommand().getQuery().getMetadata().getFiletype(),
@@ -169,6 +149,7 @@ public class WorkCmdMsg {
             rs.setMetaData(mb);
             rs.setSequenceNo(0);
             rs.setSuccess(true);
+            rs.setAction(msg.getCommand().getQuery().getAction());
 
             Work.Command.Builder cmd = Work.Command.newBuilder();
             cmd.setResponse(rs);
@@ -180,12 +161,15 @@ public class WorkCmdMsg {
 
             wm.setCommand(cmd);
 
-            CommandsUtils.sendToLeader(wm.build(),state);
+            CommandsUtils.sendToLeader(wm.build(),state, channel);
 
             DBObject result = null;
             byte[] data;
             int i = 1;
             while(cursor.hasNext()) {
+
+                System.out.println("Sending the chunk number!!!!!!!!!!!!!!!!!!!!! "+i);
+
                 result = cursor.next();
                 data = result.get("data").toString().getBytes();
 
@@ -193,13 +177,19 @@ public class WorkCmdMsg {
                 wor.setHeader(hb);
 
                 Storage.Response.Builder res = Storage.Response.newBuilder();
-                res.setSequenceNo(i++);
+                res.setSequenceNo(i);
                 res.setSuccess(true);
                 res.setData(ByteString.copyFrom(data));
-
+                res.setAction(msg.getCommand().getQuery().getAction());
                 wor.setSecret(123);
 
-                CommandsUtils.sendToLeader(wor.build(),state);
+                Work.Command.Builder cd = Work.Command.newBuilder();
+                cd.setResponse(res);
+
+                wor.setCommand(cd);
+
+                CommandsUtils.sendToLeader(wor.build(),state, channel);
+                i++;
             }
         }
     }

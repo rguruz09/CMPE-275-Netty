@@ -18,6 +18,6 @@ public class WorkCmdHandler implements Command {
 
     @Override
     public void handleMessage(Work.WorkMessage msg, Channel channel) {
-        workCmdMsg.handleWorkCmdMsg(msg, state);
+        workCmdMsg.handleWorkCmdMsg(msg, state, channel);
     }
 }

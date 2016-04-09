@@ -17,7 +17,6 @@ package gash.router.client;
 
 import com.google.protobuf.ByteString;
 import pipe.common.Common.Header;
-import pipe.work.Work;
 import storage.Storage;
 import routing.Pipe.CommandMessage;
 
@@ -84,6 +83,8 @@ public class MessageClient {
 
 		Header.Builder hb = ClientHealper.getHeader(999,-1,4);
 		Storage.Metadata.Builder mb = ClientHealper.getMetadata(data.length,fsize,fname,ftype,id);
+
+		System.out.println("Client USER ID - "+ mb.getUid());
 
 		Storage.Query.Builder qb = ClientHealper.getQuery(0, Storage.Action.STORE,mb);
 		CommandMessage.Builder cb = CommandMessage.newBuilder();

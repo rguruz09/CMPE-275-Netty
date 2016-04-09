@@ -98,9 +98,10 @@ public class Client implements CommListener {
                             System.out.println("Message sent successfully to server...");
                             break;
                         case 3:
+
+                           sc.nextLine();
                             System.out.println("Enter client ID..");
                             id= sc.nextLine();
-                            sc.nextLine();
                             System.out.println("Enter File Path which you want to save..");
                             filename = sc.nextLine();
                             File f = new File(filename);
@@ -111,9 +112,9 @@ public class Client implements CommListener {
                             }
                             break;
                         case 4:
+                            sc.nextLine();
                             System.out.println("Enter client ID..");
                             id= sc.nextLine();
-                            sc.nextLine();
                             System.out.println("Enter File name.");
                             filename = sc.nextLine();
                             clientHealper.retrieveFileFromServer(id,filename);

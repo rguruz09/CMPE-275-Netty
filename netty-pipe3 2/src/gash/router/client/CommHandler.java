@@ -15,18 +15,19 @@
  */
 package gash.router.client;
 
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import io.netty.channel.Channel;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import pipe.common.Common;
-import storage.Storage;
 import routing.Pipe.CommandMessage;
+import storage.Storage;
 
 /**
  * A client-side netty pipeline send/receive.
@@ -41,8 +42,11 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	protected static Logger logger = LoggerFactory.getLogger("connect");
 	protected ConcurrentMap<String, CommListener> listeners = new ConcurrentHashMap<String, CommListener>();
 	//private volatile Channel channel;
+	private HashMap<String, ClientHandler> handlers ;
+	private String clientID;
 
 	public CommHandler() {
+		handlers = new HashMap<String, ClientHandler>();
 	}
 
 	/**
@@ -76,7 +80,7 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 	protected void channelRead0(ChannelHandlerContext ctx, CommandMessage msg) throws Exception {
 		System.out.println("--> got incoming message");
 		//System.out.println("Message is "+ msg.getMessage());
-		logger.info("Reply from server "+ msg.getMessage());
+	//	logger.info("Reply from server "+ msg.getMessage());
 
 		for (String id : listeners.keySet()) {
 			CommListener cl = listeners.get(id);
@@ -111,9 +115,29 @@ public class CommHandler extends SimpleChannelInboundHandler<CommandMessage> {
 		try {
 
 			if(msg.hasResponse()){
-				System.out.println("Response from command server..");
 
+				if(msg.getResponse().getAction() == Storage.Action.GET){
 
+					System.out.println("Response from command server..");
+
+					int seqSize = 0;
+					String fn  = "";
+					if(msg.getResponse().hasMetaData()){
+						seqSize = msg.getResponse().getMetaData().getSeqSize();
+						clientID = msg.getResponse().getMetaData().getUid();
+						fn = msg.getResponse().getMetaData().getFname();
+					}
+					if(handlers.containsKey(clientID)){
+						handlers.get(clientID).rebuildData(channel,msg);
+					}else {
+						ClientHandler c = new ClientHandler(seqSize, fn);
+						handlers.put(clientID,c);
+						c.rebuildData(channel,msg);
+					}
+
+				}else {
+					System.out.println("Saved to server");
+				}
 			}
 		}catch (Exception e) {
 			// TODO add logging

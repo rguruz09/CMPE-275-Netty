@@ -3,6 +3,8 @@ package gash.router.server.CommandHandlers;
 import gash.router.server.Election.CommonUtils;
 import gash.router.server.ServerState;
 import gash.router.server.edges.EdgeInfo;
+import gash.router.server.workHandlers.WorkCmdMsg;
+import io.netty.channel.Channel;
 import pipe.common.Common;
 import pipe.work.Work;
 import routing.Pipe;
@@ -38,28 +40,34 @@ public class CommandsUtils {
         return wb.build();
     }
 
-    public static void sendToLeader(Work.WorkMessage workMessage, ServerState state){
+    public static void sendToLeader(Work.WorkMessage workMessage, ServerState state, Channel channel){
 
         if( (state.getEmon().getOutboundEdges().hasNode(workMessage.getHeader().getDestination())) &&
                 ( state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive()  &&
                 (state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null))){
             state.getEmon().getOutboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
-        } else if((state.getEmon().getInboundEdges().hasNode(workMessage.getHeader().getDestination())) &&
-                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive() &&
-                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null))){
-            state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
-        }else{
-            for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-                if (ei.isActive() && ei.getChannel() != null) {
-                    ei.getChannel().writeAndFlush(workMessage);
-                }
-            }
-            for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-                if (ei.isActive() && ei.getChannel() != null) {
-                    ei.getChannel().writeAndFlush(workMessage);
-                }
-            }
         }
+        else if(workMessage.getHeader().getDestination() == state.getConf().getNodeId()){
+            System.out.println("Myself teh leader.. send the command msg");
+            new WorkCmdMsg().handleWorkCmdMsg(workMessage,state, channel);
+        }
+
+//        else if((state.getEmon().getInboundEdges().hasNode(workMessage.getHeader().getDestination())) &&
+//                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive() &&
+//                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null))){
+//            state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
+//        }else{
+//            for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
+//                if (ei.isActive() && ei.getChannel() != null) {
+//                    ei.getChannel().writeAndFlush(workMessage);
+//                }
+//            }
+//            for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
+//                if (ei.isActive() && ei.getChannel() != null) {
+//                    ei.getChannel().writeAndFlush(workMessage);
+//                }
+//            }
+//        }
     }
 
     public static Pipe.CommandMessage buildCommandMsgFromWork(Work.WorkMessage msg, ServerState state){

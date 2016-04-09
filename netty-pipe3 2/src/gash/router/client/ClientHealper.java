@@ -33,11 +33,6 @@ public class ClientHealper {
             //byte [] imageByte = buffer;
             fileInputStream.close();
             byte [][] chunks = chunkData(buffer,1024000);
-//            int i=0;
-//            while(i< chunks.length) {
-//                mc.sendImage(chunks[i],i+1,id,file.getName());
-//                i++;
-//            }
             boolean success = mc.sendGenFile(chunks, size, id, file.getName(), file.getName().split("\\.")[1],file.getTotalSpace());
            // System.out.println("Number of chunks is : "+i);
             System.out.flush();

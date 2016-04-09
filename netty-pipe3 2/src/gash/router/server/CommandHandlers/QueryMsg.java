@@ -5,6 +5,7 @@ import gash.router.server.ServerState;
 import gash.router.server.workHandlers.WorkCmdHandler;
 import gash.router.server.workHandlers.WorkCmdMsg;
 import io.netty.channel.Channel;
+import io.netty.util.internal.SystemPropertyUtil;
 import pipe.common.Common;
 import pipe.work.Work;
 import storage.Storage;
@@ -31,13 +32,14 @@ public class QueryMsg {
             state.setCmdChannel(channel);
         }
         System.out.println("Query Message");
-        System.out.println("Server receieved an image from client....");
+        System.out.println("Server receieved a file from client....");
         Storage.Query.Builder qb = Storage.Query.newBuilder();
         logger.info(String.valueOf(qb.getData()));
 
         if(state != null){
             System.out.println("From client handler -- leader is :"+state);
             Work.WorkMessage workMessage = CommandsUtils.getWorkFromCommand(msg,state);
+            System.out.println("Sender of the file is %%%%%% "+msg.getQuery().getMetadata().getUid());
             if(state.getElectionMonitor().getLeaderStatus().getCurLeader() == state.getConf().getNodeId()){
                 System.out.println("I am the Leader and ill handle client request");
                 WorkCmdMsg workCmdMsg = new WorkCmdMsg();
@@ -45,7 +47,7 @@ public class QueryMsg {
                 workCmdHandler.handleMessage(workMessage,channel);
             }else {
                 System.out.println("I am not the Leader and forward it to leader");
-                CommandsUtils.sendToLeader(workMessage,state);
+                CommandsUtils.sendToLeader(workMessage,state,channel);
             }
         }
     }
