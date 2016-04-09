@@ -169,13 +169,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 					}
 				}
 
-				//Construct the msg for third node
-//				for (EdgeInfo ei : this.outboundEdges.map.values()) {
-//					if (ei.isActive() && ei.getChannel() != null) {
-//						WorkMessage wm = createHB(33);
-//						ei.getChannel().writeAndFlush(wm);
-//					}
-//				}
+		}
 
 				Thread.sleep(dt);
 			} catch (InterruptedException e) {

@@ -98,7 +98,6 @@ public class ElectionMonitor implements Runnable{
                     System.out.println("I'm the leader, Sending HB msg to my followers..");
                     Work.WorkMessage wm = CreateGenericHBReqMsg(state, Work.HbType.LEADERREQ);
                     sendMessageToEveryone(state,wm);
-                    //Thread.sleep(2000);
 
                     if(!updatefollowers()){
                         electionStatus.setStatus(ElectionStatus.NODE_STATUS.FOLLOWER);

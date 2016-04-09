@@ -251,14 +251,7 @@ public class MessageServer {
 				// on bind().sync()
 				logger.error("Failed to setup handler.", ex);
 			} finally {
-				// Shut down all event loops to terminate all threads.
-//				bossGroup.shutdownGracefully();
-//				workerGroup.shutdownGracefully();
-//
-//				// shutdown monitor
-//				EdgeMonitor emon = state.getEmon();
-//				if (emon != null)
-//					emon.shutdown();
+
 			}
 		}
 	}

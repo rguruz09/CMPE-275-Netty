@@ -29,13 +29,6 @@ public class TextMsg {
 
         if(state != null){
 
-//            System.out.println("From client handler -- leader is :"+state);
-//            Work.WorkMessage workMessage = CommandsUtils.getWorkFromCommand(msg,state);
-//            if(state.getElectionMonitor().getLeaderStatus().getCurLeader() == state.getConf().getNodeId()){
-//                System.out.println("I am the Leader and ill handle client request");
-//            }else {
-//                System.out.println("I am not the Leader and forward it to leader");
-//                CommandsUtils.sendToLeader(workMessage,state);
 
             logger.info("Received Message from client : "+msg.getMessage());
             System.out.println("Sending reply ......");

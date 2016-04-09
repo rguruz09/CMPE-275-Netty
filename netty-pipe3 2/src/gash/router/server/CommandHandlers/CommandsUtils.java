@@ -52,22 +52,6 @@ public class CommandsUtils {
             new WorkCmdMsg().handleWorkCmdMsg(workMessage,state, channel);
         }
 
-//        else if((state.getEmon().getInboundEdges().hasNode(workMessage.getHeader().getDestination())) &&
-//                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().isActive() &&
-//                (state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel() != null))){
-//            state.getEmon().getInboundEdges().getNode(workMessage.getHeader().getDestination()).getChannel().writeAndFlush(workMessage);
-//        }else{
-//            for (EdgeInfo ei : state.getEmon().getOutboundEdges().getAllNodes().values()) {
-//                if (ei.isActive() && ei.getChannel() != null) {
-//                    ei.getChannel().writeAndFlush(workMessage);
-//                }
-//            }
-//            for (EdgeInfo ei : state.getEmon().getInboundEdges().getAllNodes().values()) {
-//                if (ei.isActive() && ei.getChannel() != null) {
-//                    ei.getChannel().writeAndFlush(workMessage);
-//                }
-//            }
-//        }
     }
 
     public static Pipe.CommandMessage buildCommandMsgFromWork(Work.WorkMessage msg, ServerState state){
