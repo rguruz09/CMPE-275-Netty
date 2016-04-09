@@ -169,9 +169,7 @@ public class EdgeMonitor implements EdgeListener, Runnable {
 					}
 				}
 
-		}
-
-				Thread.sleep(dt);
+	Thread.sleep(dt);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
