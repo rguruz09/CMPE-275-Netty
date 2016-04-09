@@ -116,6 +116,13 @@
 		</java>
 	</target>
 
+	<target name="adapter" depends="init">
+		<java fork="yes" classname="gash.router.server.AdpClient">
+			<classpath refid="project.classpath" />
+			<arg value="runtime/adapter.conf" />
+		</java>
+	</target>
+
 	<target name="client" depends="init">
 		<property name="host" value="192.168.253.1"/>
 		<property name="port" value="4168"/>

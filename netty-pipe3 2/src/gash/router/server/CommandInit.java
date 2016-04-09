@@ -27,6 +27,10 @@ public class CommandInit extends ChannelInitializer<SocketChannel> {
 		this.conf = conf;
 	}
 
+	public CommandInit(){
+
+	}
+
 	@Override
 	public void initChannel(SocketChannel ch) throws Exception {
 		ChannelPipeline pipeline = ch.pipeline();

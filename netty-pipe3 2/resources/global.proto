@@ -1,5 +1,5 @@
 option optimize_for = SPEED;
-option java_package = "global";
+option java_package = "pipe.global";
 
 import "common.proto";
 import "storage.proto";
